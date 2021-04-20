@@ -37,6 +37,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.junit.vintage</groupId>
+					<artifactId>junit-vintage-engine</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 
@@ -45,6 +51,10 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.2.0</version>
 			</plugin>
 		</plugins>
 
@@ -80,7 +90,7 @@
 		<repository>
 			<id>pvt.backend</id>
 			<name>pvt-group2-backend</name>
-			<url>git@github.com/namwe/PVT-GROUP72-VT2021.git</url>
+			<url>git@github.com:namwe/PVT-GROUP72-VT2021.git</url>
 		</repository>
 	</distributionManagement>
 
