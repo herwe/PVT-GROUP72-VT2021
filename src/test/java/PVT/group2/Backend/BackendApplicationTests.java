@@ -3,6 +3,9 @@ package PVT.group2.Backend;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+
 @SpringBootTest
 class BackendApplicationTests {
 
@@ -18,6 +21,7 @@ class BackendApplicationTests {
 	@Test
 	void testHelloButFailing(){
 		String out = new BackendApplication().hello("Peter");
-		assert out.equals("Hello peter");
+
+		assertEquals("Hello peter", out, "Error, wrong output");
 	}
 }
