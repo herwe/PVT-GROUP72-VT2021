@@ -10,4 +10,10 @@ class BackendApplicationTests {
 	void contextLoads() {
 	}
 
+	@Test
+	void testHello(){
+		String out = new BackendApplication().hello("peter");
+		assert out.equals("Hello peter");
+	}
+
 }
