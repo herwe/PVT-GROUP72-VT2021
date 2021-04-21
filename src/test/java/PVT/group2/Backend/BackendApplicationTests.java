@@ -14,14 +14,9 @@ class BackendApplicationTests {
 	}
 
 	@Test
-	void testHello(){
-		String out = new BackendApplication().hello("peter");
-		assert out.equals("Hello peter");
-	}
-	@Test
-	void testHelloButFailing(){
+	void testHello() {
 		String out = new BackendApplication().hello("Peter");
-
-		assertEquals("Hello peter", out, "Error, wrong output");
+		assertEquals("Hello peter", out, "Error in Hello");
 	}
+
 }
