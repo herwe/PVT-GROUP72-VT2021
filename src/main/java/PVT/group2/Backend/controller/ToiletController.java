@@ -22,8 +22,8 @@ public class ToiletController {
      */
     @PostMapping("/add")
     public @ResponseBody
-    String addNewWasteBin (@RequestParam double latitude, @RequestParam double longitude, @RequestParam boolean operational) {
-        toiletRepository.save(new Toilet(latitude, longitude, operational));
+    String addNewWasteBin (@RequestParam double latitude, @RequestParam double longitude, @RequestParam boolean operational, @RequestParam boolean AccessibilityAdapted) {
+        toiletRepository.save(new Toilet(latitude, longitude, operational, AccessibilityAdapted));
         return "Saved";
     }
 
@@ -43,5 +43,10 @@ public class ToiletController {
     @GetMapping("/operational")
     public @ResponseBody Iterable<Toilet> allOperational() {
         return toiletRepository.findByOperationalTrue();
+    }
+
+    @GetMapping("/adapted")
+    public @ResponseBody Iterable<Toilet> allAccessibilityAdapted() {
+        return toiletRepository.findByAccessibilityAdaptedTrue();
     }
 }
