@@ -14,12 +14,6 @@ public class WasteBinController {
 
     private WasteBinRepository wasteBinRepository;
 
-    @PostMapping("/add")
-    public @ResponseBody String addNewWasteBin (@RequestParam double latitude, @RequestParam double longitude) {
-        wasteBinRepository.save(new WasteBin(latitude, longitude));
-        return "Saved";
-    }
-
     @GetMapping("/all")
     public @ResponseBody Iterable<WasteBin> all() {
         return wasteBinRepository.findAll();

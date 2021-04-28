@@ -14,20 +14,6 @@ public class ToiletController {
     private ToiletRepository toiletRepository;  //The interface to the database.
 
     /**
-     * Adds a toilet with specified attributes.
-     * @param latitude Latitude coordinates.
-     * @param longitude Longitude coordinates.
-     * @param operational If it is in working condition or not.
-     * @return Signal that adding is completed.
-     */
-    @PostMapping("/add")
-    public @ResponseBody
-    String addNewWasteBin (@RequestParam double latitude, @RequestParam double longitude, @RequestParam boolean operational, @RequestParam boolean AccessibilityAdapted) {
-        toiletRepository.save(new Toilet(latitude, longitude, operational, AccessibilityAdapted));
-        return "Saved";
-    }
-
-    /**
      * Returns all toilets in the database.
      * @return all toilets.
      */
