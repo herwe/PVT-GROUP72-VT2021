@@ -6,7 +6,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 @Entity
-public class WasteBin {
+public class Bin {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
@@ -14,12 +14,12 @@ public class WasteBin {
     private double latitude;
     private double longitude;
 
-    public WasteBin(double latitude, double longitude) {
+    public Bin(double latitude, double longitude) {
         this.latitude = latitude;
         this.longitude = longitude;
     }
 
-    public WasteBin() {
+    public Bin() {
 
     }
 

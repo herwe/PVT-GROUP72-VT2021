@@ -14,13 +14,13 @@ public class Toilet {
     private double latitude;
     private double longitude;
     private boolean operational;
-    private boolean accessibilityAdapted;
+    private boolean adapted;
 
-    public Toilet(double latitude, double longitude, boolean operational, boolean accessibilityAdapted) {
+    public Toilet(double latitude, double longitude, boolean operational, boolean adapted) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.operational = operational;
-        this.accessibilityAdapted = accessibilityAdapted;
+        this.adapted = adapted;
     }
 
     public Toilet() {
@@ -47,7 +47,7 @@ public class Toilet {
         return operational;
     }
 
-    public boolean isAccessibilityAdapted() {
-        return accessibilityAdapted;
+    public boolean isAdapted() {
+        return adapted;
     }
 }

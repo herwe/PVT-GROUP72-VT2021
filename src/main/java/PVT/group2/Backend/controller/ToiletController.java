@@ -32,7 +32,7 @@ public class ToiletController {
     }
 
     @GetMapping("/adapted")
-    public @ResponseBody Iterable<Toilet> allAccessibilityAdapted() {
-        return toiletRepository.findByAccessibilityAdaptedTrue();
+    public @ResponseBody Iterable<Toilet> allAdapted() {
+        return toiletRepository.findByAdaptedTrue();
     }
 }
