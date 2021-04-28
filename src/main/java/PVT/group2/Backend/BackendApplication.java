@@ -20,6 +20,10 @@ public class BackendApplication extends SpringBootServletInitializer {
         return String.format("Hello %s", name);
     }
 
+    @GetMapping("/")
+    public String helloNothing() {
+        return String.format("Hello there");
+    }
     @GetMapping("/maths")
     public int calculate(@RequestParam(value = "left", defaultValue = "0") int left,
                          @RequestParam(value = "right", defaultValue = "0") int right,
