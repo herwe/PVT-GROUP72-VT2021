@@ -12,7 +12,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   GoogleMapController mapController;
-  Location location = new Location();
 
 
   // Coordinates for DSV, Kista.
@@ -21,6 +20,26 @@ class _MyAppState extends State<MyApp> {
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
   }
+
+  void _currentLocation() async {
+    LocationData currentLocation;
+    var location = new Location();
+    try {
+      currentLocation = await location.getLocation();
+    } on Exception {
+      currentLocation = null;
+    }
+
+    mapController.animateCamera(CameraUpdate.newCameraPosition(
+      CameraPosition(
+        bearing: 0,
+        target: LatLng(currentLocation.latitude, currentLocation.longitude),
+        zoom: 17.0,
+      ),
+    ));
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -32,12 +51,15 @@ class _MyAppState extends State<MyApp> {
         ),
         body: GoogleMap(
           onMapCreated: _onMapCreated,
+          zoomControlsEnabled: false,
           myLocationButtonEnabled: true,
           initialCameraPosition: CameraPosition(
             target: _center,
             zoom: 15.0,
           ),
         ),
+        floatingActionButton: FloatingActionButton.extended(
+            onPressed: _currentLocation, label: Text(""), icon: Icon(Icons.location_on),),
       ),
     );
   }
