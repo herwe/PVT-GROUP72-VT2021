@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 
@@ -12,13 +13,25 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   GoogleMapController mapController;
+  String mapStyling;
 
 
   // Coordinates for DSV, Kista.
   final LatLng _center = const LatLng(59.40672485297707, 17.94522607914621);
 
+  initState() {
+    super.initState();
+    rootBundle.loadString('map_style.txt').then((string) {
+      mapStyling = string;
+    });
+  }
+
   void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
+    if (mounted)
+      setState(() {
+        mapController = controller;
+        controller.setMapStyle(mapStyling);
+      });
   }
 
   void _currentLocation() async {
@@ -39,6 +52,21 @@ class _MyAppState extends State<MyApp> {
     ));
   }
 
+  Set<Marker> _createMarker() {
+    return {
+      Marker(
+          markerId: MarkerId("marker_1"),
+          position: LatLng(59.32747669589347, 18.05404397844236),
+          infoWindow: InfoWindow(title: 'Stadshuset'),
+      ),
+      Marker(
+        markerId: MarkerId("marker_2"),
+        position: LatLng(59.330850807923106, 18.043734649777168),
+        infoWindow: InfoWindow(title: 'Stockholms tingsrätt')
+      ),
+    };
+  }
+
 
 
   @override
@@ -51,8 +79,11 @@ class _MyAppState extends State<MyApp> {
         ),
         body: GoogleMap(
           onMapCreated: _onMapCreated,
+          mapType: MapType.normal,
+          markers: _createMarker(),
           zoomControlsEnabled: false,
-          myLocationButtonEnabled: true,
+          myLocationEnabled: true,
+          myLocationButtonEnabled: false,
           initialCameraPosition: CameraPosition(
             target: _center,
             zoom: 15.0,
