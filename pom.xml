@@ -18,6 +18,23 @@
 		<java.version>1.8</java.version>
 	</properties>
 	<dependencies>
+		
+		<!-- this is a test dependency from razan -->
+		[
+<dependency>
+
+<groupId>javax.xml.bind</groupId>
+
+<artifactId>jaxb-api</artifactId>
+
+<version>2.3.0</version>
+
+</dependency>
+
+]
+		
+		
+		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
