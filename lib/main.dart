@@ -19,6 +19,8 @@ class _MyAppState extends State<MyApp> {
   // Coordinates for DSV, Kista.
   final LatLng _center = const LatLng(59.40672485297707, 17.94522607914621);
 
+  // Hej
+
   initState() {
     super.initState();
     rootBundle.loadString('map_style.txt').then((string) {
