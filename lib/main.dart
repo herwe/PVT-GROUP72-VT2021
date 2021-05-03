@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 void main() => runApp(MyApp());
 
@@ -67,7 +68,11 @@ class _MyAppState extends State<MyApp> {
     };
   }
 
-
+  void _createBins() async {
+    var url = Uri.parse('http://192.168.1.211:8080/hello');
+    http.Response response = await http.get(url);
+    print(response.body);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,8 +94,15 @@ class _MyAppState extends State<MyApp> {
             zoom: 15.0,
           ),
         ),
-        floatingActionButton: FloatingActionButton.extended(
-            onPressed: _currentLocation, label: Text(""), icon: Icon(Icons.location_on),),
+          floatingActionButton: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              FloatingActionButton.extended(
+                onPressed: _createBins, label: Text("Bin"), icon: Icon(Icons.auto_delete),),
+              FloatingActionButton.extended(
+                onPressed: _currentLocation, label: Text(""), icon: Icon(Icons.location_on),),
+            ],
+          )
       ),
     );
   }
