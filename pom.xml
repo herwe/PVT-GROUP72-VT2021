@@ -19,8 +19,7 @@
 	</properties>
 	<dependencies>
 		
-		<!-- this is a test dependency from razan -->
-		[
+		
 <dependency>
 
 <groupId>javax.xml.bind</groupId>
@@ -31,7 +30,7 @@
 
 </dependency>
 
-]
+
 		
 		
 		
