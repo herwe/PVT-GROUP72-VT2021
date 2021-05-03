@@ -74,6 +74,8 @@ floatingActionButton: FloatingActionButton.extended(
         ),
  */
 
+  // KOmmentar
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
