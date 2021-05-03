@@ -68,6 +68,11 @@ class _MyAppState extends State<MyApp> {
   }
 
 
+/*
+floatingActionButton: FloatingActionButton.extended(
+            onPressed: _currentLocation, label: Text(""), icon: Icon(Icons.location_on),
+        ),
+ */
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +95,8 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
         floatingActionButton: FloatingActionButton.extended(
-            onPressed: _currentLocation, label: Text(""), icon: Icon(Icons.location_on),),
+          onPressed: _currentLocation, label: Text(""), icon: Icon(Icons.location_on),
+        ),
       ),
     );
   }
