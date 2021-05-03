@@ -69,9 +69,14 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _createBins() async {
-    var url = Uri.parse('http://192.168.1.211:8080/hello');
+    var url = Uri.parse('http://192.168.1.211:8080/bins/all');
     http.Response response = await http.get(url);
-    print(response.body);
+    final data = jsonDecode(response.body);
+    List<Bin> bins = [];
+    for (Map i in data) {
+      bins.add(Bin.fromJson(i));
+    }
+    print(bins.length);
   }
 
   @override
@@ -104,6 +109,20 @@ class _MyAppState extends State<MyApp> {
             ],
           )
       ),
+    );
+  }
+}
+
+class Bin {
+  final double lat;
+  final double long;
+
+  Bin({@required this.lat, @required this.long});
+
+  factory Bin.fromJson(Map<String, dynamic> json) {
+    return Bin(
+      lat: json['latitude'],
+      long: json['longitude']
     );
   }
 }
