@@ -45,13 +45,3 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 /pubspec.lock
-android/.gitignore
-android/app/build.gradle
-android/app/src/debug/
-android/app/src/main/kotlin/
-android/app/src/main/res/
-android/app/src/profile/
-android/build.gradle
-android/gradle.properties
-android/gradle/
-android/settings.gradle
