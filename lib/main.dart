@@ -58,7 +58,7 @@ class _MyAppState extends State<MyApp> {
       Marker(
           markerId: MarkerId("marker_1"),
           position: LatLng(59.32747669589347, 18.05404397844236),
-          infoWindow: InfoWindow(title: 'Stadshuset'),
+          infoWindow: InfoWindow(title: 'Stadshuset '),
       ),
       Marker(
         markerId: MarkerId("marker_2"),
@@ -108,10 +108,14 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
           floatingActionButton: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              FloatingActionButton.extended(
-                onPressed: _currentLocation, label: Text(""), icon: Icon(Icons.location_on),),
+              FloatingActionButton(
+                  onPressed: _currentLocation, child: Icon(Icons.search),),
+              FloatingActionButton(
+                  onPressed: _currentLocation, child: Icon(Icons.filter_alt_outlined),),
+              FloatingActionButton(
+                onPressed: _currentLocation, child: Icon(Icons.location_on),),
             ],
           )
       ),
