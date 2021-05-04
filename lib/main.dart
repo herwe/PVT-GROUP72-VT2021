@@ -68,15 +68,22 @@ class _MyAppState extends State<MyApp> {
     };
   }
 
-  void _createBins() async {
-    var url = Uri.parse('http://192.168.1.211:8080/bins/all');
-    http.Response response = await http.get(url);
-    final data = jsonDecode(response.body);
-    List<Bin> bins = [];
-    for (Map i in data) {
-      bins.add(Bin.fromJson(i));
+  Future<List<Bin>> getBins() async {
+    try {
+      var url = Uri.parse('http://192.168.1.211:8080/bins/all');
+      http.Response response = await http.get(url);
+      final data = jsonDecode(response.body);
+      List<Bin> bins = [];
+      for (Map i in data) {
+        bins.add(Bin.fromJson(i));
+      }
+
+      return bins;
     }
-    print(bins.length);
+    catch (e) {
+      print("Error loading bins");
+      return [];
+    }
   }
 
   @override
@@ -102,8 +109,6 @@ class _MyAppState extends State<MyApp> {
           floatingActionButton: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              FloatingActionButton.extended(
-                onPressed: _createBins, label: Text("Bin"), icon: Icon(Icons.auto_delete),),
               FloatingActionButton.extended(
                 onPressed: _currentLocation, label: Text(""), icon: Icon(Icons.location_on),),
             ],
