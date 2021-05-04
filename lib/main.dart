@@ -20,6 +20,8 @@ class _MyAppState extends State<MyApp> {
   // Coordinates for DSV, Kista.
   final LatLng _center = const LatLng(59.40672485297707, 17.94522607914621);
 
+  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
+
   initState() {
     super.initState();
     rootBundle.loadString('map_style.txt').then((string) {
@@ -53,37 +55,44 @@ class _MyAppState extends State<MyApp> {
     ));
   }
 
-  Set<Marker> _createMarker() {
-    return {
-      Marker(
-          markerId: MarkerId("marker_1"),
-          position: LatLng(59.32747669589347, 18.05404397844236),
-          infoWindow: InfoWindow(title: 'Stadshuset '),
-      ),
-      Marker(
-        markerId: MarkerId("marker_2"),
-        position: LatLng(59.330850807923106, 18.043734649777168),
-        infoWindow: InfoWindow(title: 'Stockholms tingsrätt')
-      ),
-    };
-  }
-
-  Future<List<Bin>> getBins() async {
+  Future<List<Toilet>> getToilets() async {
     try {
-      var url = Uri.parse('http://78.72.246.146:8280/group2/bins/all');
+      var url = Uri.parse('http://78.72.246.146:8280/group2/wc/all');
       http.Response response = await http.get(url);
       final data = jsonDecode(response.body);
-      List<Bin> bins = [];
+
+      List<Toilet> toilets = [];
       for (Map i in data) {
-        bins.add(Bin.fromJson(i));
+        toilets.add(Toilet.fromJson(i));
       }
-      print(bins.length);
-      return bins;
+
+      return toilets;
     }
     catch (e) {
-      print("Error loading bins");
+      print("Error loading toilets");
       return [];
     }
+  }
+
+  loadToilets() {
+    getToilets().then((toilets) {
+      for (Toilet t in toilets) {
+        addMarker(t.id.toString(), t.lat, t.long, "wc");
+      }
+    });
+  }
+
+  addMarker(String id, double lat, double long, String type) {
+    MarkerId markerId = MarkerId(id + type);
+
+    final Marker marker = Marker (
+      markerId: markerId,
+      position: LatLng(lat, long)
+    );
+
+    setState(() {
+      markers[markerId] = marker;
+    });
   }
 
   @override
@@ -98,7 +107,7 @@ class _MyAppState extends State<MyApp> {
           mapToolbarEnabled: false,
           onMapCreated: _onMapCreated,
           mapType: MapType.normal,
-          markers: _createMarker(),
+          markers: Set<Marker>.of(markers.values),
           zoomControlsEnabled: false,
           myLocationEnabled: true,
           myLocationButtonEnabled: false,
@@ -116,6 +125,8 @@ class _MyAppState extends State<MyApp> {
                   onPressed: _currentLocation, child: Icon(Icons.filter_alt_outlined),),
               FloatingActionButton(
                 onPressed: _currentLocation, child: Icon(Icons.location_on),),
+              FloatingActionButton(
+                onPressed: loadToilets, child: Icon(Icons.airline_seat_legroom_extra),),
             ],
           )
       ),
@@ -123,16 +134,22 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-class Bin {
+class Toilet {
+  final int id;
   final double lat;
   final double long;
+  final bool operational;
+  final bool adapted;
 
-  Bin({@required this.lat, @required this.long});
+  Toilet({@required this.id, @required this.lat, @required this.long, @required this.operational, @required this.adapted});
 
-  factory Bin.fromJson(Map<String, dynamic> json) {
-    return Bin(
+  factory Toilet.fromJson(Map<String, dynamic> json) {
+    return Toilet(
+      id: json['id'],
       lat: json['latitude'],
-      long: json['longitude']
+      long: json['longitude'],
+      operational: json['operational'],
+      adapted: json['adapted']
     );
   }
 }
