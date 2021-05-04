@@ -70,14 +70,14 @@ class _MyAppState extends State<MyApp> {
 
   Future<List<Bin>> getBins() async {
     try {
-      var url = Uri.parse('http://192.168.1.211:8080/bins/all');
+      var url = Uri.parse('http://78.72.246.146:8280/group2/bins/all');
       http.Response response = await http.get(url);
       final data = jsonDecode(response.body);
       List<Bin> bins = [];
       for (Map i in data) {
         bins.add(Bin.fromJson(i));
       }
-
+      print(bins.length);
       return bins;
     }
     catch (e) {
