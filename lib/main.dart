@@ -95,6 +95,7 @@ class _MyAppState extends State<MyApp> {
           backgroundColor: Colors.green[700],
         ),
         body: GoogleMap(
+          mapToolbarEnabled: false,
           onMapCreated: _onMapCreated,
           mapType: MapType.normal,
           markers: _createMarker(),
