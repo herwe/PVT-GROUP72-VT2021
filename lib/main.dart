@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 void main() => runApp(MyApp());
 
@@ -67,7 +68,23 @@ class _MyAppState extends State<MyApp> {
     };
   }
 
-
+  Future<List<Bin>> getBins() async {
+    try {
+      var url = Uri.parse('http://78.72.246.146:8280/group2/bins/all');
+      http.Response response = await http.get(url);
+      final data = jsonDecode(response.body);
+      List<Bin> bins = [];
+      for (Map i in data) {
+        bins.add(Bin.fromJson(i));
+      }
+      print(bins.length);
+      return bins;
+    }
+    catch (e) {
+      print("Error loading bins");
+      return [];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,9 +106,28 @@ class _MyAppState extends State<MyApp> {
             zoom: 15.0,
           ),
         ),
-        floatingActionButton: FloatingActionButton.extended(
-            onPressed: _currentLocation, label: Text(""), icon: Icon(Icons.location_on),),
+          floatingActionButton: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              FloatingActionButton.extended(
+                onPressed: _currentLocation, label: Text(""), icon: Icon(Icons.location_on),),
+            ],
+          )
       ),
+    );
+  }
+}
+
+class Bin {
+  final double lat;
+  final double long;
+
+  Bin({@required this.lat, @required this.long});
+
+  factory Bin.fromJson(Map<String, dynamic> json) {
+    return Bin(
+      lat: json['latitude'],
+      long: json['longitude']
     );
   }
 }
