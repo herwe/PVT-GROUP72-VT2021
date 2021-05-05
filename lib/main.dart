@@ -98,8 +98,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     return MaterialApp(
         home: Scaffold(
             appBar: AppBar(
-              title: Text('Maps Sample App'),
-              backgroundColor: Colors.green[700],
+              toolbarHeight: 2,
               bottom: TabBar(
                 controller: _tabController,
                 tabs: <Widget>[
