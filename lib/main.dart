@@ -9,16 +9,16 @@ import 'toilet.dart';
 import 'dart:ui' as ui;
 
 void main() => runApp(MyApp());
+TabController _tabController;
 
 class MyApp extends StatefulWidget {
   @override
   _MyAppState createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   GoogleMapController mapController;
   String mapStyling;
-
 
   // Coordinates for DSV, Kista.
   final LatLng _center = const LatLng(59.40672485297707, 17.94522607914621);
@@ -30,6 +30,7 @@ class _MyAppState extends State<MyApp> {
 
   initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     rootBundle.loadString('map_style.txt').then((string) {
       mapStyling = string;
     });
@@ -102,38 +103,57 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Maps Sample App'),
-          backgroundColor: Colors.green[700],
-        ),
-        body: GoogleMap(
-          mapToolbarEnabled: false,
-          onMapCreated: _onMapCreated,
-          mapType: MapType.normal,
-          markers: Set<Marker>.of(markers.values),
-          zoomControlsEnabled: false,
-          myLocationEnabled: true,
-          myLocationButtonEnabled: false,
-          initialCameraPosition: CameraPosition(
-            target: _center,
-            zoom: 10,
-          ),
-        ),
-          floatingActionButton: Row(
-            //mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              FloatingActionButton(
-                  onPressed: _currentLocation, child: Icon(Icons.search),),
-              FloatingActionButton(
-                  onPressed: _currentLocation, child: Icon(Icons.filter_alt_outlined),),
-              FloatingActionButton(
-                onPressed: _currentLocation, child: Icon(Icons.location_on),),
-              FloatingActionButton(
-                onPressed: loadToilets, child: Icon(Icons.airline_seat_legroom_extra),),
-            ],
-          )
-      ),
-    );
+        home: Scaffold(
+            appBar: AppBar(
+              toolbarHeight: 2,
+              bottom: TabBar(
+                controller: _tabController,
+                tabs: <Widget>[
+                  Tab(
+                    icon: Icon(Icons.map),
+                  ),
+                  Tab(
+                    icon: Icon(Icons.filter_alt_outlined),
+                  ),
+                ],
+              ),
+            ),
+            body: GoogleMap(
+              mapToolbarEnabled: false,
+              onMapCreated: _onMapCreated,
+              mapType: MapType.normal,
+              markers: Set<Marker>.of(markers.values),
+              zoomControlsEnabled: false,
+              myLocationEnabled: true,
+              myLocationButtonEnabled: false,
+              initialCameraPosition: CameraPosition(
+                target: _center,
+                zoom: 15.0,
+              ),
+            ),
+            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+            floatingActionButton: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                FloatingActionButton(
+                  onPressed: _currentLocation,
+                  child: Icon(Icons.search),
+                ),
+                FloatingActionButton(
+                  onPressed: _currentLocation,
+                  child: Icon(Icons.filter_alt_outlined),
+                ),
+                FloatingActionButton(
+                  onPressed: _currentLocation,
+                  child: Icon(Icons.location_on),
+                ),
+                FloatingActionButton(
+                  onPressed: loadToilets,
+                  child: Icon(Icons.airline_seat_legroom_extra),
+                ),
+              ],
+            ))
+        //mainAxisAlignment: MainAxisAlignment.spaceBetween
+     );
   }
 }
