@@ -1,9 +1,12 @@
+import 'dart:typed_data';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'toilet.dart';
+import 'dart:ui' as ui;
 
 void main() => runApp(MyApp());
 TabController _tabController;
@@ -19,8 +22,11 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   // Coordinates for DSV, Kista.
   final LatLng _center = const LatLng(59.40672485297707, 17.94522607914621);
+  final int smallIconSize = 50;
 
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
+
+  Uint8List toiletIcon;
 
   initState() {
     super.initState();
@@ -28,6 +34,18 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     rootBundle.loadString('map_style.txt').then((string) {
       mapStyling = string;
     });
+    loadIcons();
+  }
+
+  loadIcons() async {
+    toiletIcon = await getBytesFromAsset('assets/wc.png', smallIconSize);
+  }
+  
+  Future<Uint8List> getBytesFromAsset(String path, int width) async {
+    ByteData data = await rootBundle.load(path);
+    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(), targetWidth: width);
+    ui.FrameInfo fi = await codec.getNextFrame();
+    return (await fi.image.toByteData(format: ui.ImageByteFormat.png)).buffer.asUint8List();
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -56,37 +74,26 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     ));
   }
 
-  Future<List<Toilet>> getToilets() async {
-    try {
-      var url = Uri.parse('http://78.72.246.146:8280/group2/wc/all');
-      http.Response response = await http.get(url);
-      final data = jsonDecode(response.body);
-
-      List<Toilet> toilets = [];
-      for (Map i in data) {
-        toilets.add(Toilet.fromJson(i));
-      }
-
-      return toilets;
-    } catch (e) {
-      print("Error loading toilets");
-      return [];
-    }
-  }
-
   loadToilets() {
     getToilets().then((toilets) {
       for (Toilet t in toilets) {
-        addMarker(t.id.toString(), t.lat, t.long, "wc");
+        String info = "Dritsatt: ${t.operational}\nAnpasad: ${t.adapted}";
+        addMarker(t.id.toString(), t.lat, t.long, "wc", info, toiletIcon);
       }
     });
   }
 
-  addMarker(String id, double lat, double long, String type) {
+  addMarker(String id, double lat, double long, String type, String info, Uint8List icon) {
     MarkerId markerId = MarkerId(id + type);
 
-    final Marker marker =
-        Marker(markerId: markerId, position: LatLng(lat, long));
+    final Marker marker = Marker (
+        icon: BitmapDescriptor.fromBytes(icon),
+        markerId: markerId,
+        position: LatLng(lat, long),
+        onTap: () {
+          print("marker tapped: ${markerId}");
+        }
+    );
 
     setState(() {
       markers[markerId] = marker;
@@ -146,33 +153,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                 ),
               ],
             ))
-
         //mainAxisAlignment: MainAxisAlignment.spaceBetween
-
-        );
-  }
-}
-
-class Toilet {
-  final int id;
-  final double lat;
-  final double long;
-  final bool operational;
-  final bool adapted;
-
-  Toilet(
-      {@required this.id,
-      @required this.lat,
-      @required this.long,
-      @required this.operational,
-      @required this.adapted});
-
-  factory Toilet.fromJson(Map<String, dynamic> json) {
-    return Toilet(
-        id: json['id'],
-        lat: json['latitude'],
-        long: json['longitude'],
-        operational: json['operational'],
-        adapted: json['adapted']);
+     );
   }
 }
