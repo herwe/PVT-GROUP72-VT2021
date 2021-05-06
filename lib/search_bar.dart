@@ -4,7 +4,8 @@ import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 
 class search_bar {
   Widget buildFloatingSearchBar(BuildContext context) {
-    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+    final isPortrait =
+        MediaQuery.of(context).orientation == Orientation.portrait;
 
     return FloatingSearchBar(
       hint: 'Search...',

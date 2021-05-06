@@ -5,11 +5,26 @@ import 'package:flutter/services.dart';
 import 'package:flutter_app/search_bar.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import 'toilet.dart';
 import 'dart:ui' as ui;
 
-void main() => runApp(MyApp());
+void main() => runApp(Test());
 TabController _tabController;
+
+class Test extends StatefulWidget {
+  @override
+  _testAppState createState() => _testAppState();
+}
+
+class _testAppState extends State<Test> {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: MyApp(),
+    );
+  }
+}
 
 class MyApp extends StatefulWidget {
   @override
@@ -41,12 +56,15 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   loadIcons() async {
     toiletIcon = await getBytesFromAsset('assets/wc.png', smallIconSize);
   }
-  
+
   Future<Uint8List> getBytesFromAsset(String path, int width) async {
     ByteData data = await rootBundle.load(path);
-    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(), targetWidth: width);
+    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(),
+        targetWidth: width);
     ui.FrameInfo fi = await codec.getNextFrame();
-    return (await fi.image.toByteData(format: ui.ImageByteFormat.png)).buffer.asUint8List();
+    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))
+        .buffer
+        .asUint8List();
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -56,7 +74,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         controller.setMapStyle(mapStyling);
       });
   }
-
 
   void _currentLocation() async {
     LocationData currentLocation;
@@ -76,112 +93,144 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     ));
   }
 
-  bool toiletsToggled = false;
   loadToilets() {
-    if (!toiletsToggled) {
-      getToilets().then((toilets) {
-        for (Toilet t in toilets) {
-          String info = "Dritsatt: ${t.operational}\nAnpasad: ${t.adapted}";
-          addMarker(t.id.toString(), t.lat, t.long, "wc", info, toiletIcon);
-        }
-      });
-      toiletsToggled = true;
-    }
-    else {
-      setState(() {
-        markers.removeWhere((key, value) => key.toString().contains("wc"));
-        toiletsToggled = false;
-      });
-    }
+    getToilets().then((toilets) {
+      for (Toilet t in toilets) {
+        String info = "Dritsatt: ${t.operational}\nAnpasad: ${t.adapted}";
+        addMarker(t.id.toString(), t.lat, t.long, "wc", info, toiletIcon);
+      }
+    });
   }
 
-  addMarker(String id, double lat, double long, String type, String info, Uint8List icon) {
+  addMarker(String id, double lat, double long, String type, String info,
+      Uint8List icon) {
     MarkerId markerId = MarkerId(id + type);
 
-    final Marker marker = Marker (
+    final Marker marker = Marker(
         icon: BitmapDescriptor.fromBytes(icon),
         markerId: markerId,
         position: LatLng(lat, long),
         onTap: () {
           print("marker tapped: ${markerId}");
-        }
-    );
+        });
 
     setState(() {
       markers[markerId] = marker;
     });
   }
 
-  goBack() {
-    mapController.animateCamera(CameraUpdate.newCameraPosition(
-      CameraPosition(
-        bearing: 0,
-        target: _center,
-        zoom: 10,
-      ),
-    ));
+  Widget buildFloatingSearchBar() {
+    final isPortrait =
+        MediaQuery.of(context).orientation == Orientation.portrait;
+    return FloatingSearchBar(
+      hint: 'Search...',
+      scrollPadding: const EdgeInsets.only(top: 16, bottom: 56),
+      transitionDuration: const Duration(milliseconds: 800),
+      transitionCurve: Curves.easeInOut,
+      physics: const BouncingScrollPhysics(),
+      axisAlignment: isPortrait ? 0.0 : -1.0,
+      openAxisAlignment: 0.0,
+      width: isPortrait ? 600 : 500,
+      debounceDelay: const Duration(milliseconds: 500),
+      onQueryChanged: (query) {
+        // Call your model, bloc, controller here.
+      },
+      // Specify a custom transition to be used for
+      // animating between opened and closed stated.
+      transition: CircularFloatingSearchBarTransition(),
+      actions: [
+        FloatingSearchBarAction(
+          showIfOpened: false,
+          child: CircularButton(
+            icon: const Icon(Icons.place),
+            onPressed: () {},
+          ),
+        ),
+        FloatingSearchBarAction.searchToClear(
+          showIfClosed: false,
+        ),
+      ],
+      builder: (context, transition) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Material(
+            color: Colors.white,
+            elevation: 4.0,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: Colors.accents.map((color) {
+                return Container(height: 112, color: color);
+              }).toList(),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-        home: Scaffold(
+  Widget build(BuildContext context) => MaterialApp(
+      home: Scaffold(
           resizeToAvoidBottomInset: false,
-            appBar: AppBar(
-              toolbarHeight: 48,
-              bottom: TabBar(
-                controller: _tabController,
-                tabs: <Widget>[
-                  Tab(
-                    icon: Icon(Icons.map),
-                  ),
-                  Tab(
-                    icon: Icon(Icons.filter_alt_outlined),
-                  ),
-                ],
-              ),
-            ),
-            body: GoogleMap(
-              mapToolbarEnabled: false,
-              onMapCreated: _onMapCreated,
-              mapType: MapType.normal,
-              markers: Set<Marker>.of(markers.values),
-              zoomControlsEnabled: false,
-              myLocationEnabled: true,
-              myLocationButtonEnabled: false,
-              initialCameraPosition: CameraPosition(
-                target: _center,
-                zoom: 10,
-              ),
-            ),
-            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-            floatingActionButton: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-                FloatingActionButton(
-                  onPressed: _currentLocation,
-                  child: Icon(Icons.search),
+          appBar: AppBar(
+            toolbarHeight: 48,
+            bottom: TabBar(
+              controller: _tabController,
+              tabs: <Widget>[
+                Tab(
+                  icon: Icon(Icons.map),
                 ),
-                FloatingActionButton(
-                  onPressed: _currentLocation,
-                  child: Icon(Icons.filter_alt_outlined),
-                ),
-                FloatingActionButton(
-                  onPressed: _currentLocation,
-                  child: Icon(Icons.location_on),
-                ),
-                FloatingActionButton(
-                  onPressed: loadToilets,
-                  child: Icon(Icons.airline_seat_legroom_extra),
-                ),
-                FloatingActionButton(
-                  onPressed: goBack,
-                  child: Icon(Icons.home),
+                Tab(
+                  icon: Icon(Icons.filter_alt_outlined),
                 ),
               ],
-            )
-        )
-        //mainAxisAlignment: MainAxisAlignment.spaceBetween
-     );
-  }
+            ),
+          ),
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              GoogleMap(
+                mapToolbarEnabled: false,
+                onMapCreated: _onMapCreated,
+                mapType: MapType.normal,
+                markers: Set<Marker>.of(markers.values),
+                zoomControlsEnabled: false,
+                myLocationEnabled: true,
+                myLocationButtonEnabled: false,
+                initialCameraPosition: CameraPosition(
+                  target: _center,
+                  zoom: 10,
+                ),
+              ),
+              buildFloatingSearchBar(),
+            ],
+          ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+          floatingActionButton: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              FloatingActionButton(
+                onPressed: _currentLocation,
+                child: Icon(Icons.search),
+              ),
+              FloatingActionButton(
+                onPressed: _currentLocation,
+                child: Icon(Icons.filter_alt_outlined),
+              ),
+              FloatingActionButton(
+                onPressed: _currentLocation,
+                child: Icon(Icons.location_on),
+              ),
+              FloatingActionButton(
+                onPressed: loadToilets,
+                child: Icon(Icons.airline_seat_legroom_extra),
+              ),
+              /**  FloatingActionButton(
+                      onPressed: goBack,
+                      child: Icon(Icons.home),
+                      ),**/
+            ],
+          ))
+      //mainAxisAlignment: MainAxisAlignment.spaceBetween
+      );
 }
