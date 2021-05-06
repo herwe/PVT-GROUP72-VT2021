@@ -124,6 +124,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return MaterialApp(
         home: Scaffold(
+          resizeToAvoidBottomInset: false,
             appBar: AppBar(
               toolbarHeight: 48,
               bottom: TabBar(
