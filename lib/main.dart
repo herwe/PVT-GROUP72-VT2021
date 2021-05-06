@@ -74,13 +74,23 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     ));
   }
 
+  bool toiletsToggled = false;
   loadToilets() {
-    getToilets().then((toilets) {
-      for (Toilet t in toilets) {
-        String info = "Dritsatt: ${t.operational}\nAnpasad: ${t.adapted}";
-        addMarker(t.id.toString(), t.lat, t.long, "wc", info, toiletIcon);
-      }
-    });
+    if (!toiletsToggled) {
+      getToilets().then((toilets) {
+        for (Toilet t in toilets) {
+          String info = "Dritsatt: ${t.operational}\nAnpasad: ${t.adapted}";
+          addMarker(t.id.toString(), t.lat, t.long, "wc", info, toiletIcon);
+        }
+      });
+      toiletsToggled = true;
+    }
+    else {
+      setState(() {
+        markers.removeWhere((key, value) => key.toString().contains("wc"));
+        toiletsToggled = false;
+      });
+    }
   }
 
   addMarker(String id, double lat, double long, String type, String info, Uint8List icon) {
@@ -100,12 +110,22 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     });
   }
 
+  goBack() {
+    mapController.animateCamera(CameraUpdate.newCameraPosition(
+      CameraPosition(
+        bearing: 0,
+        target: _center,
+        zoom: 10,
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
         home: Scaffold(
             appBar: AppBar(
-              toolbarHeight: 2,
+              toolbarHeight: 48,
               bottom: TabBar(
                 controller: _tabController,
                 tabs: <Widget>[
@@ -128,7 +148,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
               myLocationButtonEnabled: false,
               initialCameraPosition: CameraPosition(
                 target: _center,
-                zoom: 15.0,
+                zoom: 10,
               ),
             ),
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -150,6 +170,10 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                 FloatingActionButton(
                   onPressed: loadToilets,
                   child: Icon(Icons.airline_seat_legroom_extra),
+                ),
+                FloatingActionButton(
+                  onPressed: goBack,
+                  child: Icon(Icons.home),
                 ),
               ],
             ))
