@@ -30,12 +30,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    TabController(length: 2, vsync: this);
     _tabController.addListener(() {
       setState(() {
         if (_tabController.index == 0) {
           Navigator.pop(context);
-        } else {
+        } else if (_tabController.index == 1) {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => ListRoute()),
@@ -108,7 +108,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         markerId: markerId,
         position: LatLng(lat, long),
         onTap: () {
-          print("marker tapped: ${markerId}");
+          print("marker tapped: $markerId");
         });
 
     setState(() {
