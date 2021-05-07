@@ -39,7 +39,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   final int smallIconSize = 50;
 
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
-
   Uint8List toiletIcon;
 
   initState() {
