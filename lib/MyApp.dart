@@ -206,9 +206,9 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           child: Icon(Icons.airline_seat_legroom_extra),
         ),
         /**  FloatingActionButton(
-                  onPressed: goBack,
-                  child: Icon(Icons.home),
-                  ),**/
+            onPressed: goBack,
+            child: Icon(Icons.home),
+            ),**/
       ],
     );
   }
@@ -253,8 +253,21 @@ class ListRoute extends StatefulWidget {
 }
 
 class _ListRouteState extends State<ListRoute> {
+  _MyAppState test = new _MyAppState();
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold();
+    return Scaffold(
+        resizeToAvoidBottomInset: false,
+        appBar: test.buildAppBar(),
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            test.buildGoogleMap(),
+            test.buildFloatingSearchBar(),
+          ],
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        floatingActionButton: test.buildFloatingActionButtonsColumn());
   }
 }
