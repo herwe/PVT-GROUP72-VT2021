@@ -31,6 +31,19 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      setState(() {
+        if (_tabController.index == 0) {
+          Navigator.pop(context);
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ListRoute()),
+          );
+        }
+      });
+    });
+
     rootBundle.loadString('map_style.txt').then((string) {
       mapStyling = string;
     });
@@ -231,5 +244,17 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         zoom: 10,
       ),
     );
+  }
+}
+
+class ListRoute extends StatefulWidget {
+  @override
+  _ListRouteState createState() => _ListRouteState();
+}
+
+class _ListRouteState extends State<ListRoute> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold();
   }
 }
