@@ -16,50 +16,48 @@ public class Park {
 
     private String name;
     private boolean green;
-    private boolean lekplats;
-    private boolean naturlek;
-    private boolean ro;
-    private boolean boll;
-    private boolean boll_lek;
-    private boolean park_lek;
+    private boolean playground;
+    private boolean natureplay;
+    private boolean calm;
+    private boolean ballplay;
+    private boolean parkplay;
     private boolean picknick;
     private boolean grill;
-    private boolean pulka;
+    private boolean sleigh;
     private boolean view;
-    private boolean skog;
-    private boolean djur;
-    private boolean vatten;
-    private boolean utom_bad;
-    private boolean natur_upp;
-    private boolean ute_serv;
-    private boolean vatten_lek;
-    private boolean bad;
+    private boolean forrest;
+    private boolean animal;
+    private boolean water;
+    private boolean out_bath;
+    private boolean nature_expr;
+    private boolean out_serve;
+    private boolean water_play;
+    private boolean bath_f;
 
-    public Park(Integer id, double latitude, double longitude, String name, boolean green, boolean lekplats, boolean naturlek, boolean ro, boolean boll, boolean boll_lek, boolean park_lek, boolean picknick, boolean grill, boolean pulka, boolean view, boolean skog, boolean djur, boolean vatten, boolean utom_bad, boolean natur_upp, boolean ute_serv, boolean vatten_lek, boolean bad) {
+    public Park(Integer id, double latitude, double longitude, String name, boolean green, boolean playground, boolean natureplay, boolean calm, boolean ballplay, boolean parkplay, boolean picknick, boolean grill, boolean sleigh, boolean view, boolean forrest, boolean animal, boolean water, boolean out_bath, boolean nature_expr, boolean out_serve, boolean water_play, boolean bath_f) {
         this.id = id;
         this.latitude = latitude;
 
         this.longitude = longitude;
         this.name = name;
         this.green = green;
-        this.lekplats = lekplats;
-        this.naturlek = naturlek;
-        this.ro = ro;
-        this.boll = boll;
-        this.boll_lek = boll_lek;
-        this.park_lek = park_lek;
+        this.playground = playground;
+        this.natureplay = natureplay;
+        this.calm = calm;
+        this.ballplay = ballplay;
+        this.parkplay = parkplay;
         this.picknick = picknick;
         this.grill = grill;
-        this.pulka = pulka;
+        this.sleigh = sleigh;
         this.view = view;
-        this.skog = skog;
-        this.djur = djur;
-        this.vatten = vatten;
-        this.utom_bad = utom_bad;
-        this.natur_upp = natur_upp;
-        this.ute_serv = ute_serv;
-        this.vatten_lek = vatten_lek;
-        this.bad = bad;
+        this.forrest = forrest;
+        this.animal = animal;
+        this.water = water;
+        this.out_bath = out_bath;
+        this.nature_expr = nature_expr;
+        this.out_serve = out_serve;
+        this.water_play = water_play;
+        this.bath_f = bath_f;
     }
 
     public Park() {
@@ -86,28 +84,24 @@ public class Park {
         return green;
     }
 
-    public boolean isLekplats() {
-        return lekplats;
+    public boolean isPlayground() {
+        return playground;
     }
 
-    public boolean isNaturlek() {
-        return naturlek;
+    public boolean isNatureplay() {
+        return natureplay;
     }
 
-    public boolean isRo() {
-        return ro;
+    public boolean isCalm() {
+        return calm;
     }
 
-    public boolean isBoll() {
-        return boll;
+    public boolean isBallplay() {
+        return ballplay;
     }
 
-    public boolean isBoll_lek() {
-        return boll_lek;
-    }
-
-    public boolean isPark_lek() {
-        return park_lek;
+    public boolean isParkplay() {
+        return parkplay;
     }
 
     public boolean isPicknick() {
@@ -118,43 +112,43 @@ public class Park {
         return grill;
     }
 
-    public boolean isPulka() {
-        return pulka;
+    public boolean isSleigh() {
+        return sleigh;
     }
 
     public boolean isView() {
         return view;
     }
 
-    public boolean isSkog() {
-        return skog;
+    public boolean isForrest() {
+        return forrest;
     }
 
-    public boolean isDjur() {
-        return djur;
+    public boolean isAnimal() {
+        return animal;
     }
 
-    public boolean isVatten() {
-        return vatten;
+    public boolean isWater() {
+        return water;
     }
 
-    public boolean isUtom_bad() {
-        return utom_bad;
+    public boolean isOut_bath() {
+        return out_bath;
     }
 
-    public boolean isNatur_upp() {
-        return natur_upp;
+    public boolean isNature_expr() {
+        return nature_expr;
     }
 
-    public boolean isUte_serv() {
-        return ute_serv;
+    public boolean isOut_serve() {
+        return out_serve;
     }
 
-    public boolean isVatten_lek() {
-        return vatten_lek;
+    public boolean isWater_play() {
+        return water_play;
     }
 
-    public boolean isBad() {
-        return bad;
+    public boolean isBath_f() {
+        return bath_f;
     }
 }
