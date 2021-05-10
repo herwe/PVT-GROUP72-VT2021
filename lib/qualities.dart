@@ -1,0 +1,20 @@
+enum Qualities {
+  green,
+  playground,
+  natureplay,
+  calm,
+  ballplay,
+  parkplay,
+  picknick,
+  grill,
+  sleigh,
+  view,
+  forrest,
+  animal,
+  water,
+  out_bath,
+  nature_expr,
+  out_serve,
+  water_play,
+  bath_f
+}
