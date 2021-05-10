@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'location.dart';
 
-class Toilet {
-  final int id;
-  final double lat;
-  final double long;
+class Toilet extends Location {
   final bool operational;
   final bool adapted;
 
-  Toilet({@required this.id, @required this.lat, @required this.long, @required this.operational, @required this.adapted});
+  Toilet({@required id, @required lat, @required long, @required this.operational, @required this.adapted}) : super.constructor(id, lat, long);
 
   factory Toilet.fromJson(Map<String, dynamic> json) {
     return Toilet(

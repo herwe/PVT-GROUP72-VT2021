@@ -9,6 +9,7 @@ import 'package:location/location.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 
 import 'toilet.dart';
+import 'park.dart';
 
 class MyApp extends StatefulWidget {
   @override
@@ -84,12 +85,35 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     });
   }
 
+  loadParks() {
+    getparks().then((parks) {
+      for (Park p in parks) {
+        addMarkerDefault(p.id.toString(), p.lat, p.long, "park", "info");
+      }
+    });
+  }
+
   addMarker(String id, double lat, double long, String type, String info,
       Uint8List icon) {
     MarkerId markerId = MarkerId(id + type);
 
     final Marker marker = Marker(
         icon: BitmapDescriptor.fromBytes(icon),
+        markerId: markerId,
+        position: LatLng(lat, long),
+        onTap: () {
+          print("marker tapped: $markerId");
+        });
+
+    setState(() {
+      markers[markerId] = marker;
+    });
+  }
+
+  addMarkerDefault(String id, double lat, double long, String type, String info) {
+    MarkerId markerId = MarkerId(id + type);
+
+    final Marker marker = Marker(
         markerId: markerId,
         position: LatLng(lat, long),
         onTap: () {
@@ -204,10 +228,10 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           onPressed: loadToilets,
           child: Icon(Icons.airline_seat_legroom_extra),
         ),
-        /**  FloatingActionButton(
-            onPressed: goBack,
-            child: Icon(Icons.home),
-            ),**/
+        FloatingActionButton(
+            onPressed: loadParks,
+            child: Icon(Icons.park),
+            ),
       ],
     );
   }
@@ -239,7 +263,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       myLocationButtonEnabled: false,
       initialCameraPosition: CameraPosition(
         target: _center,
-        zoom: 10,
+        zoom: 15,
       ),
     );
   }
