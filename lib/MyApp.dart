@@ -10,8 +10,6 @@ import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 
 import 'toilet.dart';
 
-TabController _tabController;
-
 class MyApp extends StatefulWidget {
   @override
   _MyAppState createState() => _MyAppState();
@@ -30,19 +28,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(() {
-      setState(() {
-        if (_tabController.index == 0) {
-          Navigator.pop(context);
-        } else if (_tabController.index == 1) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ListRoute()),
-          );
-        }
-      });
-    });
 
     rootBundle.loadString('map_style.txt').then((string) {
       mapStyling = string;
@@ -143,6 +128,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             onPressed: () {},
           ),
         ),
+
         FloatingSearchBarAction.searchToClear(
           showIfClosed: false,
         ),
@@ -166,23 +152,35 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   }
 
   @override
-  Widget build(BuildContext context) => MaterialApp(home: buildScaffold()
-      //mainAxisAlignment: MainAxisAlignment.spaceBetween
-      );
+  Widget build(BuildContext context) => MaterialApp(home: buildViews()
+    //mainAxisAlignment: MainAxisAlignment.spaceBetween
+  );
 
-  Scaffold buildScaffold() {
-    return Scaffold(
-        resizeToAvoidBottomInset: false,
-        appBar: buildAppBar(),
-        body: Stack(
-          fit: StackFit.expand,
-          children: [
-            buildGoogleMap(),
-            buildFloatingSearchBar(),
-          ],
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-        floatingActionButton: buildFloatingActionButtonsColumn());
+  DefaultTabController buildViews() {
+    return DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          resizeToAvoidBottomInset: false,
+          appBar: buildAppBar(),
+          body: TabBarView(children: [
+            Stack(
+              fit: StackFit.expand,
+              children: [
+                buildGoogleMap(),
+                buildFloatingSearchBar(),
+              ],
+            ),
+            Stack(
+              fit: StackFit.expand,
+              children: [
+                buildFloatingSearchBar(),
+              ],
+            )
+          ]),
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+          floatingActionButton: buildFloatingActionButtonsColumn()
+        )
+    );
   }
 
   Column buildFloatingActionButtonsColumn() {
@@ -199,6 +197,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         ),
         FloatingActionButton(
           onPressed: _currentLocation,
+
           child: Icon(Icons.location_on),
         ),
         FloatingActionButton(
@@ -217,7 +216,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     return AppBar(
       toolbarHeight: 48,
       bottom: TabBar(
-        controller: _tabController,
         tabs: <Widget>[
           Tab(
             icon: Icon(Icons.map),
@@ -244,121 +242,5 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         zoom: 10,
       ),
     );
-  }
-}
-
-class ListRoute extends StatefulWidget {
-  @override
-  _ListRouteState createState() => _ListRouteState();
-}
-
-class _ListRouteState extends State<ListRoute> {
-  AppBar buildAppBar() {
-    return AppBar(
-      toolbarHeight: 48,
-      bottom: TabBar(
-        controller: _tabController,
-        tabs: <Widget>[
-          Tab(
-            icon: Icon(Icons.map),
-          ),
-          Tab(
-            icon: Icon(Icons.filter_alt_outlined),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Column buildFloatingActionButtonsColumn() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: <Widget>[
-        FloatingActionButton(
-          // onPressed: _currentLocation,
-          child: Icon(Icons.search),
-        ),
-        FloatingActionButton(
-          //    onPressed: _currentLocation,
-          child: Icon(Icons.filter_alt_outlined),
-        ),
-        FloatingActionButton(
-          // onPressed: _currentLocation,
-          child: Icon(Icons.location_on),
-        ),
-        FloatingActionButton(
-          //     onPressed: loadToilets,
-          child: Icon(Icons.airline_seat_legroom_extra),
-        ),
-        /**  FloatingActionButton(
-            onPressed: goBack,
-            child: Icon(Icons.home),
-            ),**/
-      ],
-    );
-  }
-
-  Widget buildFloatingSearchBar() {
-    final isPortrait =
-        MediaQuery.of(context).orientation == Orientation.portrait;
-    return FloatingSearchBar(
-      hint: 'Search...',
-      scrollPadding: const EdgeInsets.only(top: 16, bottom: 56),
-      transitionDuration: const Duration(milliseconds: 800),
-      transitionCurve: Curves.easeInOut,
-      physics: const BouncingScrollPhysics(),
-      axisAlignment: isPortrait ? 0.0 : -1.0,
-      openAxisAlignment: 0.0,
-      width: isPortrait ? 600 : 500,
-      debounceDelay: const Duration(milliseconds: 500),
-      onQueryChanged: (query) {
-        // Call your model, bloc, controller here.
-      },
-      // Specify a custom transition to be used for
-      // animating between opened and closed stated.
-      transition: CircularFloatingSearchBarTransition(),
-      actions: [
-        FloatingSearchBarAction(
-          showIfOpened: false,
-          child: CircularButton(
-            icon: const Icon(Icons.place),
-            onPressed: () {},
-          ),
-        ),
-        FloatingSearchBarAction.searchToClear(
-          showIfClosed: false,
-        ),
-      ],
-      builder: (context, transition) {
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Material(
-            color: Colors.white,
-            elevation: 4.0,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: Colors.accents.map((color) {
-                return Container(height: 112, color: color);
-              }).toList(),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        resizeToAvoidBottomInset: false,
-        appBar: buildAppBar(),
-        body: Stack(
-          fit: StackFit.expand,
-          children: [
-            buildFloatingSearchBar(),
-          ],
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-        floatingActionButton: buildFloatingActionButtonsColumn());
   }
 }
