@@ -175,6 +175,32 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     );
   }
 
+
+  void _showFilters() {
+    showModalBottomSheet(
+        context: context,
+        builder: (context) => Container( child: Column(
+          children: [
+            Row(
+              children: [
+                InputChip(
+                    avatar: CircleAvatar(
+                      backgroundColor: Colors.grey.shade800,
+                      child: Icon(Icons.accessibility),
+                    ),
+                    label: Text('Parklek'),
+                    onPressed: () {
+                      print('I am the one thing in life.');
+                    }
+                ),
+              ],
+            )
+          ],
+        ),
+          color: Colors.transparent,
+        ));
+  }
+
   @override
   Widget build(BuildContext context) => MaterialApp(home: buildViews()
     //mainAxisAlignment: MainAxisAlignment.spaceBetween
@@ -186,7 +212,9 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         child: Scaffold(
           resizeToAvoidBottomInset: false,
           appBar: buildAppBar(),
-          body: TabBarView(children: [
+          body: TabBarView(
+              physics: NeverScrollableScrollPhysics(),
+              children: [
             Stack(
               fit: StackFit.expand,
               children: [
@@ -216,7 +244,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           child: Icon(Icons.search),
         ),
         FloatingActionButton(
-          onPressed: _currentLocation,
+          onPressed: _showFilters,
           child: Icon(Icons.filter_alt_outlined),
         ),
         FloatingActionButton(
