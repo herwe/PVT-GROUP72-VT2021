@@ -23,10 +23,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  google_maps_flutter: ^2.0.1
-  location: ^4.1.1
-  http: 0.13.2
-  material_floating_search_bar: ^0.3.4
+  google_maps_flutter:
+  location:
+  http:
+  material_floating_search_bar:
+  google_maps_cluster_manager:
 
 
 

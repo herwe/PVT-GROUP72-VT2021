@@ -1,12 +1,14 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
+import 'package:google_maps_cluster_manager/google_maps_cluster_manager.dart';
 
 import 'toilet.dart';
 import 'park.dart';
@@ -17,15 +19,47 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
-  GoogleMapController mapController;
+  //GoogleMapController mapController;
+  Completer<GoogleMapController> mapController = Completer();
   String mapStyling;
+  ClusterManager clusterManager;
 
   // Coordinates for DSV, Kista.
-  final LatLng _center = const LatLng(59.40672485297707, 17.94522607914621);
+  final CameraPosition dsv = CameraPosition(target: LatLng(59.40672485297707, 17.94522607914621), zoom: 10);
   final int smallIconSize = 50;
 
-  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
-  Uint8List toiletIcon;
+  Set<Marker> markers = Set();
+  
+  List<ClusterItem<Park>> parks;
+
+  List<ClusterItem<Park>> _initParks() {
+    List<ClusterItem<Park>> parks = [];
+
+    getParks().then((loadedParks) {
+      for (Park p in loadedParks) {
+        parks.add(ClusterItem(LatLng(p.lat, p.long), item: Park(p.id, p.lat, p.long, p.name)));
+      }
+    });
+
+    return parks;
+  }
+
+  _initToilets() {
+    getToilets().then((loadedToilets) {
+      for (Toilet t in loadedToilets) {
+        markers.add(Marker(
+          icon: toiletIcon,
+          markerId: MarkerId(t.id.toString() + "wc"),
+          position: LatLng(t.lat, t.long),
+          onTap: () {
+            print("Is toilets");
+          }
+        ));
+      }
+    });
+  }
+
+  BitmapDescriptor toiletIcon;
 
   initState() {
     super.initState();
@@ -34,10 +68,24 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       mapStyling = string;
     });
     loadIcons();
+    parks = _initParks();
+    _initToilets();
+    clusterManager = _initClusterManager();
+  }
+
+  ClusterManager _initClusterManager() {
+    return ClusterManager<Park>(parks, _updateMarkers, initialZoom: dsv.zoom, stopClusteringZoom: 15.0, extraPercent: 0.2); //Change stopClusteringZoom at your own risk
+  }
+
+  void _updateMarkers(Set<Marker> markers) {
+    print('Updated ${markers.length} markers');
+    setState(() {
+      this.markers = markers;
+    });
   }
 
   loadIcons() async {
-    toiletIcon = await getBytesFromAsset('assets/wc.png', smallIconSize);
+    toiletIcon = BitmapDescriptor.fromBytes(await getBytesFromAsset('assets/wc.png', smallIconSize));
   }
 
   Future<Uint8List> getBytesFromAsset(String path, int width) async {
@@ -50,15 +98,15 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         .asUint8List();
   }
 
-  void _onMapCreated(GoogleMapController controller) {
+  /*void _onMapCreated(GoogleMapController controller) {
     if (mounted)
       setState(() {
         mapController = controller;
         controller.setMapStyle(mapStyling);
       });
-  }
+  }*/
 
-  void _currentLocation() async {
+  /*void _currentLocation() async {
     LocationData currentLocation;
     var location = new Location();
     try {
@@ -74,7 +122,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         zoom: 17.0,
       ),
     ));
-  }
+  }*/
 
   loadToilets() {
     getToilets().then((toilets) {
@@ -86,19 +134,18 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   }
 
   loadParks() {
-    getparks().then((parks) {
+    getParks().then((parks) {
       for (Park p in parks) {
         addMarkerDefault(p.id.toString(), p.lat, p.long, "park", "info");
       }
     });
   }
 
-  addMarker(String id, double lat, double long, String type, String info,
-      Uint8List icon) {
+  addMarker(String id, double lat, double long, String type, String info, BitmapDescriptor icon) {
     MarkerId markerId = MarkerId(id + type);
 
     final Marker marker = Marker(
-        icon: BitmapDescriptor.fromBytes(icon),
+        icon: icon,
         markerId: markerId,
         position: LatLng(lat, long),
         onTap: () {
@@ -106,7 +153,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         });
 
     setState(() {
-      markers[markerId] = marker;
+      markers.add(marker);
     });
   }
 
@@ -121,7 +168,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         });
 
     setState(() {
-      markers[markerId] = marker;
+      markers.add(marker);
     });
   }
 
@@ -176,9 +223,21 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   }
 
   @override
-  Widget build(BuildContext context) => MaterialApp(home: buildViews()
-    //mainAxisAlignment: MainAxisAlignment.spaceBetween
-  );
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      body: GoogleMap(
+          mapType: MapType.normal,
+          initialCameraPosition: dsv,
+          markers: markers,
+          onMapCreated: (GoogleMapController controller) {
+            mapController.complete(controller);
+            controller.setMapStyle(mapStyling);
+            clusterManager.setMapController(controller);
+          },
+          onCameraMove: clusterManager.onCameraMove,
+          onCameraIdle: clusterManager.updateMap),
+    );
+  }
 
   DefaultTabController buildViews() {
     return DefaultTabController(
@@ -190,7 +249,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             Stack(
               fit: StackFit.expand,
               children: [
-                buildGoogleMap(),
+                //buildGoogleMap(),
                 buildFloatingSearchBar(),
               ],
             ),
@@ -202,12 +261,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             )
           ]),
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-          floatingActionButton: buildFloatingActionButtonsColumn()
+          //floatingActionButton: buildFloatingActionButtonsColumn()
         )
     );
   }
 
-  Column buildFloatingActionButtonsColumn() {
+  /*Column buildFloatingActionButtonsColumn() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
@@ -234,7 +293,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             ),
       ],
     );
-  }
+  }*/
 
   AppBar buildAppBar() {
     return AppBar(
@@ -252,19 +311,16 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     );
   }
 
-  GoogleMap buildGoogleMap() {
+  /*GoogleMap buildGoogleMap() {
     return GoogleMap(
       mapToolbarEnabled: false,
       onMapCreated: _onMapCreated,
       mapType: MapType.normal,
-      markers: Set<Marker>.of(markers.values),
+      markers: Set<Marker>.of(markers),
       zoomControlsEnabled: false,
       myLocationEnabled: true,
       myLocationButtonEnabled: false,
-      initialCameraPosition: CameraPosition(
-        target: _center,
-        zoom: 15,
-      ),
+      initialCameraPosition: dsv,
     );
-  }
+  }*/
 }
