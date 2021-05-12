@@ -8,8 +8,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 
-import 'toilet.dart';
 import 'park.dart';
+import 'toilet.dart';
 
 class MyApp extends StatefulWidget {
   @override
@@ -19,7 +19,6 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   GoogleMapController mapController;
   String mapStyling;
-  List<String> filterStrings = [];
 
   // Coordinates for DSV, Kista.
   final LatLng _center = const LatLng(59.40672485297707, 17.94522607914621);
@@ -111,7 +110,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     });
   }
 
-  addMarkerDefault(String id, double lat, double long, String type, String info) {
+  addMarkerDefault(
+      String id, double lat, double long, String type, String info) {
     MarkerId markerId = MarkerId(id + type);
 
     final Marker marker = Marker(
@@ -153,7 +153,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             onPressed: () {},
           ),
         ),
-
         FloatingSearchBarAction.searchToClear(
           showIfClosed: false,
         ),
@@ -175,170 +174,41 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       },
     );
   }
-  var _parklek = false;
 
   void _showFilters() {
     bool _useChisel = false;
-    showModalBottomSheet(
-        context: context,
-        builder: (context) => Container(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  InputChip(
-                      avatar: CircleAvatar(
-                        backgroundColor: Colors.grey.shade800,
-                        child: Icon(Icons.accessibility),
-                      ),
-                      label: Text('Bollspel'),
-                      labelStyle: TextStyle(color: _parklek ? Colors.black : Colors.white),
-                      selected: _parklek,
-                      onSelected: (bool selected) {
-                        setState(() {
-                          if (selected) {
-                            filterStrings.add('Bollspel');
-                          } else {
-                            filterStrings.remove('Bollspel');
-                          }
-                          _parklek = !_parklek;
-                        });
-                      },
-                      selectedColor: Colors.indigo,
-                      checkmarkColor: Colors.black,
-                      ),
-                  InputChip(
-                      avatar: CircleAvatar(
-                        backgroundColor: Colors.grey.shade800,
-                        child: Icon(Icons.accessibility),
-                      ),
-                      label: Text('Djurhållning'),
-                      onPressed: () {
-                        print('I am the one thing in life.');
-                      }
-                  ),
-                  InputChip(
-                      avatar: CircleAvatar(
-                        backgroundColor: Colors.grey.shade800,
-                        child: Icon(Icons.accessibility),
-                      ),
-                      label: Text('Grillning'),
-                      onPressed: () {
-                        print('I am the one thing in life.');
-                      }
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  InputChip(
-                      avatar: CircleAvatar(
-                        backgroundColor: Colors.grey.shade800,
-                        child: Icon(Icons.accessibility),
-                      ),
-                      label: Text('Lekpark'),
-                      onPressed: () {
-                        print('I am the one thing in life.');
-                      }
-                  ),
-                  InputChip(
-                      avatar: CircleAvatar(
-                        backgroundColor: Colors.grey.shade800,
-                        child: Icon(Icons.accessibility),
-                      ),
-                      label: Text('Parklek'),
-                      onPressed: () {
-                        print('I am the one thing in life.');
-                      }
-                  ),
-                  InputChip(
-                      avatar: CircleAvatar(
-                        backgroundColor: Colors.grey.shade800,
-                        child: Icon(Icons.accessibility),
-                      ),
-                      label: Text('Plaskdamm'),
-                      onPressed: () {
-                        print('I am the one thing in life.');
-                      }
-                  ),
-                ]
-              ),
-              Row(
-                children: [
-                  InputChip(
-                      avatar: CircleAvatar(
-                        backgroundColor: Colors.grey.shade800,
-                        child: Icon(Icons.accessibility),
-                      ),
-                      label: Text('Utomhusbad'),
-                      onPressed: () {
-                        print('I am the one thing in life.');
-                      }
-                  ),
-                  InputChip(
-                      label: Text('Use Chisel'),
-                      onSelected: (bool newValue) {
-                        setState(() {
-                          print("klickat");
-                          _useChisel = newValue;
-                        });
-                      }
-                  ),
-                ],
-              ),
-              Container(
-                child:
-                  InputChip(
-                      avatar: CircleAvatar(
-                        backgroundColor: Colors.teal.shade800,
-                        child: Icon(Icons.accessibility),
-                      ),
-                      label: Text('OK'),
-                      onPressed: () {
-                        print('I am the one thing in life.');
-                      }
-                  ),
-              )
-            ],
-          ),
-          color: Colors.transparent,
-        ));
+    showModalBottomSheet(context: context, builder: (context) => Wood());
   }
-
 
   @override
   Widget build(BuildContext context) => MaterialApp(home: buildViews()
-    //mainAxisAlignment: MainAxisAlignment.spaceBetween
-  );
+      //mainAxisAlignment: MainAxisAlignment.spaceBetween
+      );
 
   DefaultTabController buildViews() {
     return DefaultTabController(
         length: 2,
         child: Scaffold(
-          resizeToAvoidBottomInset: false,
-          appBar: buildAppBar(),
-          body: TabBarView(
-              physics: NeverScrollableScrollPhysics(),
-              children: [
-            Stack(
-              fit: StackFit.expand,
-              children: [
-                buildGoogleMap(),
-                buildFloatingSearchBar(),
-              ],
-            ),
-            Stack(
-              fit: StackFit.expand,
-              children: [
-                buildFloatingSearchBar(),
-              ],
-            )
-          ]),
-          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-          floatingActionButton: buildFloatingActionButtonsColumn()
-        )
-    );
+            resizeToAvoidBottomInset: false,
+            appBar: buildAppBar(),
+            body:
+                TabBarView(physics: NeverScrollableScrollPhysics(), children: [
+              Stack(
+                fit: StackFit.expand,
+                children: [
+                  buildGoogleMap(),
+                  buildFloatingSearchBar(),
+                ],
+              ),
+              Stack(
+                fit: StackFit.expand,
+                children: [
+                  buildFloatingSearchBar(),
+                ],
+              )
+            ]),
+            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+            floatingActionButton: buildFloatingActionButtonsColumn()));
   }
 
   Column buildFloatingActionButtonsColumn() {
@@ -355,7 +225,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         ),
         FloatingActionButton(
           onPressed: _currentLocation,
-
           child: Icon(Icons.location_on),
         ),
         FloatingActionButton(
@@ -363,9 +232,9 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           child: Icon(Icons.airline_seat_legroom_extra),
         ),
         FloatingActionButton(
-            onPressed: loadParks,
-            child: Icon(Icons.park),
-            ),
+          onPressed: loadParks,
+          child: Icon(Icons.park),
+        ),
       ],
     );
   }
@@ -399,6 +268,137 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         target: _center,
         zoom: 15,
       ),
+    );
+  }
+}
+
+class Wood extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => WoodState();
+}
+
+class WoodState extends State<Wood> {
+  bool _useChisel = false;
+  var _parklek = false;
+  List<String> filterStrings = [];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              InputChip(
+                avatar: CircleAvatar(
+                  backgroundColor: Colors.grey.shade800,
+                  child: Icon(Icons.accessibility),
+                ),
+                label: Text('Bollspel'),
+                labelStyle:
+                    TextStyle(color: _parklek ? Colors.black : Colors.white),
+                selected: _parklek,
+                onSelected: (bool selected) {
+                  setState(() {
+                    if (selected) {
+                      filterStrings.add('Bollspel');
+                    } else {
+                      filterStrings.remove('Bollspel');
+                    }
+                    _parklek = !_parklek;
+                  });
+                },
+                selectedColor: Colors.indigo,
+                checkmarkColor: Colors.black,
+              ),
+              InputChip(
+                  avatar: CircleAvatar(
+                    backgroundColor: Colors.grey.shade800,
+                    child: Icon(Icons.accessibility),
+                  ),
+                  label: Text('Djurhållning'),
+                  onPressed: () {
+                    print('I am the one thing in life.');
+                  }),
+              InputChip(
+                  avatar: CircleAvatar(
+                    backgroundColor: Colors.grey.shade800,
+                    child: Icon(Icons.accessibility),
+                  ),
+                  label: Text('Grillning'),
+                  onPressed: () {
+                    print('I am the one thing in life.');
+                  }),
+            ],
+          ),
+          Row(children: [
+            InputChip(
+                avatar: CircleAvatar(
+                  backgroundColor: Colors.grey.shade800,
+                  child: Icon(Icons.accessibility),
+                ),
+                label: Text('Lekpark'),
+                onPressed: () {
+                  print('I am the one thing in life.');
+                }),
+            InputChip(
+                avatar: CircleAvatar(
+                  backgroundColor: Colors.grey.shade800,
+                  child: Icon(Icons.accessibility),
+                ),
+                label: Text('Parklek'),
+                onPressed: () {
+                  print('I am the one thing in life.');
+                }),
+            InputChip(
+                avatar: CircleAvatar(
+                  backgroundColor: Colors.grey.shade800,
+                  child: Icon(Icons.accessibility),
+                ),
+                label: Text('Plaskdamm'),
+                onPressed: () {
+                  print('I am the one thing in life.');
+                }),
+          ]),
+          Row(
+            children: [
+              InputChip(
+                  avatar: CircleAvatar(
+                    backgroundColor: Colors.grey.shade800,
+                    child: Icon(Icons.accessibility),
+                  ),
+                  label: Text('Utomhusbad'),
+                  onPressed: () {
+                    print('I am the one thing in life.');
+                  }),
+              InputChip(
+                  label: Text('Use Chisel'),
+                  selectedColor: Colors.amber,
+                  checkmarkColor: Colors.black,
+                  selected: _useChisel,
+                  onSelected: (bool newValue) {
+                    setState(() {
+                      _useChisel = !_useChisel;
+                      print(_useChisel);
+                    });
+                  }),
+            ],
+          ),
+          Container(
+            child: InputChip(
+                avatar: CircleAvatar(
+                  backgroundColor: Colors.teal.shade800,
+                  child: Icon(Icons.accessibility),
+                ),
+                label: Text('OK'),
+                onPressed: () {
+                  print('I am the one thing in life.');
+                }),
+          )
+        ],
+      ),
+      color: Colors.transparent,
     );
   }
 }
