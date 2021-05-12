@@ -31,16 +31,14 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   
   List<ClusterItem<Park>> parks;
 
-  List<ClusterItem<Park>> _initParks() {
-    List<ClusterItem<Park>> parks = [];
+  _initParks() {
+    parks = [];
 
     getParks().then((loadedParks) {
       for (Park p in loadedParks) {
         parks.add(ClusterItem(LatLng(p.lat, p.long), item: Park(p.id, p.lat, p.long, p.name)));
       }
     });
-
-    return parks;
   }
 
   initState() {
@@ -50,12 +48,57 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       mapStyling = string;
     });
 
-    parks = _initParks();
+    _initParks();
     clusterManager = _initClusterManager();
   }
 
+  //Cluster implementation stolen from: https://pub.dev/packages/google_maps_cluster_manager
   ClusterManager _initClusterManager() {
-    return ClusterManager<Park>(parks, _updateMarkers, initialZoom: dsv.zoom, stopClusteringZoom: 15.0, extraPercent: 0.2); //Change stopClusteringZoom at your own risk
+    return ClusterManager<Park>(parks, _updateMarkers, initialZoom: dsv.zoom, stopClusteringZoom: 14.0, markerBuilder: markerBuilder); //Change stopClusteringZoom at your own risk
+  }
+
+  static Future<Marker> Function(Cluster) get markerBuilder => (cluster) async {
+    return Marker(
+      markerId: MarkerId(cluster.getId()),
+      position: cluster.location,
+      onTap: () {
+        if (cluster.items.length == 1) {
+          Park p = cluster.items.first as Park;
+          print("This is ${p.name}");
+        }
+      },
+      icon: await getClusterBitmap(cluster.isMultiple ? 125 : 75,
+          text: cluster.isMultiple? cluster.count.toString() : null),
+    );
+  };
+
+  static Future<BitmapDescriptor> getClusterBitmap(int size, {String text}) async {
+    final ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
+    final Canvas canvas = Canvas(pictureRecorder);
+    final Paint paint1 = Paint()..color = Colors.lightGreen;
+
+    canvas.drawCircle(Offset(size / 2, size / 2), size / 2.0, paint1);
+
+    if (text != null) {
+      TextPainter painter = TextPainter(textDirection: TextDirection.ltr);
+      painter.text = TextSpan(
+        text: text,
+        style: TextStyle(
+            fontSize: size / 3,
+            color: Colors.white,
+            fontWeight: FontWeight.normal),
+      );
+      painter.layout();
+      painter.paint(
+        canvas,
+        Offset(size / 2 - painter.width / 2, size / 2 - painter.height / 2),
+      );
+    }
+
+    final img = await pictureRecorder.endRecording().toImage(size, size);
+    final data = await img.toByteData(format: ui.ImageByteFormat.png);
+
+    return BitmapDescriptor.fromBytes(data.buffer.asUint8List());
   }
 
   void _updateMarkers(Set<Marker> markers) {
