@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_app/qualities.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
@@ -18,25 +19,21 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   GoogleMapController mapController;
-  //Completer<GoogleMapController> mapController = Completer();
   String mapStyling;
   ClusterManager clusterManager;
 
   // Coordinates for DSV, Kista.
   final CameraPosition dsv = CameraPosition(target: LatLng(59.40672485297707, 17.94522607914621), zoom: 10);
 
-  final int smallIconSize = 50;
-
   Set<Marker> markers = Set();
   
   List<ClusterItem<Park>> parks;
-
   _initParks() {
     parks = [];
 
     getParks().then((loadedParks) {
       for (Park p in loadedParks) {
-        parks.add(ClusterItem(LatLng(p.lat, p.long), item: Park(p.id, p.lat, p.long, p.name)));
+        parks.add(ClusterItem(LatLng(p.lat, p.long), item: p));
       }
     });
   }
@@ -64,11 +61,13 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       onTap: () {
         if (cluster.items.length == 1) {
           Park p = cluster.items.first as Park;
-          print("This is ${p.name}");
+          print("This is ${p.name} and has the following qualities:");
+          for (Qualities q in p.parkQualities) {
+            print(q.toString());
+          }
         }
       },
-      icon: await getClusterBitmap(cluster.isMultiple ? 125 : 75,
-          text: cluster.isMultiple? cluster.count.toString() : null),
+      icon: await getClusterBitmap(cluster.isMultiple ? 125 : 75, text: cluster.isMultiple ? cluster.count.toString() : null),
     );
   };
 
@@ -266,7 +265,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         initialCameraPosition: dsv,
         markers: markers,
         onMapCreated: (GoogleMapController controller) {
-          //mapController.complete(controller);
           mapController = controller;
           controller.setMapStyle(mapStyling);
           clusterManager.setMapController(controller);
