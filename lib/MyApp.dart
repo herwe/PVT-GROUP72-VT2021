@@ -1,17 +1,17 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/qualities.dart';
+import 'package:google_maps_cluster_manager/google_maps_cluster_manager.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
-import 'package:google_maps_cluster_manager/google_maps_cluster_manager.dart';
+
 import 'filterSheet.dart';
 import 'park.dart';
-import 'toilet.dart';
 
 Map<Qualities, bool> filterMap = <Qualities, bool>{
   Qualities.ballplay: false,
@@ -39,10 +39,11 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   ClusterManager clusterManager;
 
   // Coordinates for DSV, Kista.
-  final CameraPosition dsv = CameraPosition(target: LatLng(59.40672485297707, 17.94522607914621), zoom: 10);
+  final CameraPosition dsv = CameraPosition(
+      target: LatLng(59.40672485297707, 17.94522607914621), zoom: 10);
 
   Set<Marker> markers = Set();
-  
+
   List<ClusterItem<Park>> parks;
   _initParks() {
     parks = [];
@@ -73,27 +74,33 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   //Cluster implementation stolen from: https://pub.dev/packages/google_maps_cluster_manager
   ClusterManager _initClusterManager() {
-    return ClusterManager<Park>(parks, _updateMarkers, initialZoom: dsv.zoom, stopClusteringZoom: 14.0, markerBuilder: markerBuilder); //Change stopClusteringZoom at your own risk
+    return ClusterManager<Park>(parks, _updateMarkers,
+        initialZoom: dsv.zoom,
+        stopClusteringZoom: 14.0,
+        markerBuilder:
+            markerBuilder); //Change stopClusteringZoom at your own risk
   }
 
   static Future<Marker> Function(Cluster) get markerBuilder => (cluster) async {
-    return Marker(
-      markerId: MarkerId(cluster.getId()),
-      position: cluster.location,
-      onTap: () {
-        if (cluster.items.length == 1) {
-          Park p = cluster.items.first as Park;
-          print("This is ${p.name} and has the following qualities:");
-          for (Qualities q in p.parkQualities) {
-            print(q.toString());
-          }
-        }
-      },
-      icon: await getClusterBitmap(cluster.isMultiple ? 125 : 75, text: cluster.isMultiple ? cluster.count.toString() : null),
-    );
-  };
+        return Marker(
+          markerId: MarkerId(cluster.getId()),
+          position: cluster.location,
+          onTap: () {
+            if (cluster.items.length == 1) {
+              Park p = cluster.items.first as Park;
+              print("This is ${p.name} and has the following qualities:");
+              for (Qualities q in p.parkQualities) {
+                print(q.toString());
+              }
+            }
+          },
+          icon: await getClusterBitmap(cluster.isMultiple ? 125 : 75,
+              text: cluster.isMultiple ? cluster.count.toString() : null),
+        );
+      };
 
-  static Future<BitmapDescriptor> getClusterBitmap(int size, {String text}) async {
+  static Future<BitmapDescriptor> getClusterBitmap(int size,
+      {String text}) async {
     final ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
     final Canvas canvas = Canvas(pictureRecorder);
     final Paint paint1 = Paint()..color = Colors.lightGreen;
@@ -198,6 +205,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   void _showFilters() {
     showModalBottomSheet(context: context, builder: (context) => Filter());
+    this.reassemble();
   }
 
   @override
