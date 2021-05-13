@@ -13,20 +13,22 @@ import 'filterSheet.dart';
 import 'park.dart';
 import 'toilet.dart';
 
-class MyApp extends StatefulWidget {
-  Map<String, bool> filterMap = <String, bool>{
-    "Bollspel": false,
-    "Djurhållning": false,
-    "Grillning": false,
-    "Lekpark": false,
-    "Parklek": false,
-    "Plaskdamm": false,
-  };
+Map<Qualities, bool> filterMap = <Qualities, bool>{
+  Qualities.ballplay: false,
+  Qualities.parkplay: false,
+  Qualities.animal: false,
+  Qualities.grill: false,
+  Qualities.natureplay: false,
+  Qualities.water_play: false,
+  Qualities.playground: false,
+  Qualities.out_bath: false,
+};
 
+class MyApp extends StatefulWidget {
   @override
   _MyAppState createState() => _MyAppState();
 
-  void updateFilterMap(Map<String, bool> map) {
+  void updateFilterMap(Map<Qualities, bool> map) {
     filterMap = map;
   }
 }
@@ -47,7 +49,13 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
     getParks().then((loadedParks) {
       for (Park p in loadedParks) {
-        parks.add(ClusterItem(LatLng(p.lat, p.long), item: p));
+        for (Qualities q in p.parkQualities) {
+          if (filterMap.containsKey(q)) {
+            if (filterMap[q] == true) {
+              parks.add(ClusterItem(LatLng(p.lat, p.long), item: p));
+            }
+          }
+        }
       }
     });
   }
@@ -190,11 +198,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   void _showFilters() {
     showModalBottomSheet(context: context, builder: (context) => Filter());
-
-    setState(() {
-      // todo
-      // Här ska filtret uppdateras..... På något sätt
-    });
   }
 
   @override
@@ -232,12 +235,15 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
+        /*** THIS BUTTON IS PROBABLY NOT NEEDED. ***\
         FloatingActionButton(
           onPressed: () {
             print("Not implemented");
           },
           child: Icon(Icons.search),
         ),
+
+         */
         FloatingActionButton(
           onPressed: _showFilters,
           child: Icon(Icons.filter_alt_outlined),
@@ -268,6 +274,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   GoogleMap buildGoogleMap() {
     return GoogleMap(
+        mapToolbarEnabled: false,
+        zoomControlsEnabled: false,
         mapType: MapType.normal,
         initialCameraPosition: dsv,
         markers: markers,
