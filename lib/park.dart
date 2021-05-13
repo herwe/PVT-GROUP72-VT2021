@@ -1,22 +1,20 @@
 import 'package:flutter_app/location.dart';
-import 'package:flutter/material.dart';
 import 'qualities.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class Park extends Location {
-  final String name;
+  String name;
   List<Qualities> parkQualities = [];
 
-  Park({@required id, @required lat, @required long, @required this.name}) : super.constructor(id, lat, long);
+  //Park({@required id, @required lat, @required long, @required this.name}) : super.constructor(id, lat, long);
+
+  Park(int id, double lat, double long, String name) : super(id, lat, long) {
+    this.name = name;
+  }
 
   factory Park.fromJson(Map<String, dynamic> json) {
-    Park park =  Park(
-      id: json['id'],
-      lat: json['latitude'],
-      long: json['longitude'],
-      name: json['name']
-    );
+    Park park =  Park(json['id'], json['latitude'], json['longitude'], json['name']);
 
     park.fillQualities(json);
 
@@ -98,7 +96,7 @@ class Park extends Location {
   }
 }
 
-Future<List<Park>> getparks() async {
+Future<List<Park>> getParks() async {
   try {
     var url = Uri.parse('http://78.72.246.146:8280/group2/parks/all');
     http.Response response = await http.get(url);

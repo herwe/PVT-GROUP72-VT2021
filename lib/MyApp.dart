@@ -1,13 +1,14 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_app/qualities.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
-
+import 'package:google_maps_cluster_manager/google_maps_cluster_manager.dart';
 import 'filterSheet.dart';
 import 'park.dart';
 import 'toilet.dart';
@@ -33,13 +34,23 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   GoogleMapController mapController;
   String mapStyling;
+  ClusterManager clusterManager;
 
   // Coordinates for DSV, Kista.
-  final LatLng _center = const LatLng(59.40672485297707, 17.94522607914621);
-  final int smallIconSize = 50;
+  final CameraPosition dsv = CameraPosition(target: LatLng(59.40672485297707, 17.94522607914621), zoom: 10);
 
-  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
-  Uint8List toiletIcon;
+  Set<Marker> markers = Set();
+  
+  List<ClusterItem<Park>> parks;
+  _initParks() {
+    parks = [];
+
+    getParks().then((loadedParks) {
+      for (Park p in loadedParks) {
+        parks.add(ClusterItem(LatLng(p.lat, p.long), item: p));
+      }
+    });
+  }
 
   initState() {
     super.initState();
@@ -47,29 +58,67 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     rootBundle.loadString('map_style.txt').then((string) {
       mapStyling = string;
     });
-    loadIcons();
+
+    _initParks();
+    clusterManager = _initClusterManager();
   }
 
-  loadIcons() async {
-    toiletIcon = await getBytesFromAsset('assets/wc.png', smallIconSize);
+  //Cluster implementation stolen from: https://pub.dev/packages/google_maps_cluster_manager
+  ClusterManager _initClusterManager() {
+    return ClusterManager<Park>(parks, _updateMarkers, initialZoom: dsv.zoom, stopClusteringZoom: 14.0, markerBuilder: markerBuilder); //Change stopClusteringZoom at your own risk
   }
 
-  Future<Uint8List> getBytesFromAsset(String path, int width) async {
-    ByteData data = await rootBundle.load(path);
-    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(),
-        targetWidth: width);
-    ui.FrameInfo fi = await codec.getNextFrame();
-    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))
-        .buffer
-        .asUint8List();
+  static Future<Marker> Function(Cluster) get markerBuilder => (cluster) async {
+    return Marker(
+      markerId: MarkerId(cluster.getId()),
+      position: cluster.location,
+      onTap: () {
+        if (cluster.items.length == 1) {
+          Park p = cluster.items.first as Park;
+          print("This is ${p.name} and has the following qualities:");
+          for (Qualities q in p.parkQualities) {
+            print(q.toString());
+          }
+        }
+      },
+      icon: await getClusterBitmap(cluster.isMultiple ? 125 : 75, text: cluster.isMultiple ? cluster.count.toString() : null),
+    );
+  };
+
+  static Future<BitmapDescriptor> getClusterBitmap(int size, {String text}) async {
+    final ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
+    final Canvas canvas = Canvas(pictureRecorder);
+    final Paint paint1 = Paint()..color = Colors.lightGreen;
+
+    canvas.drawCircle(Offset(size / 2, size / 2), size / 2.0, paint1);
+
+    if (text != null) {
+      TextPainter painter = TextPainter(textDirection: TextDirection.ltr);
+      painter.text = TextSpan(
+        text: text,
+        style: TextStyle(
+            fontSize: size / 3,
+            color: Colors.white,
+            fontWeight: FontWeight.normal),
+      );
+      painter.layout();
+      painter.paint(
+        canvas,
+        Offset(size / 2 - painter.width / 2, size / 2 - painter.height / 2),
+      );
+    }
+
+    final img = await pictureRecorder.endRecording().toImage(size, size);
+    final data = await img.toByteData(format: ui.ImageByteFormat.png);
+
+    return BitmapDescriptor.fromBytes(data.buffer.asUint8List());
   }
 
-  void _onMapCreated(GoogleMapController controller) {
-    if (mounted)
-      setState(() {
-        mapController = controller;
-        controller.setMapStyle(mapStyling);
-      });
+  void _updateMarkers(Set<Marker> markers) {
+    print('Updated ${markers.length} markers');
+    setState(() {
+      this.markers = markers;
+    });
   }
 
   void _currentLocation() async {
@@ -88,56 +137,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         zoom: 17.0,
       ),
     ));
-  }
-
-  loadToilets() {
-    getToilets().then((toilets) {
-      for (Toilet t in toilets) {
-        String info = "Dritsatt: ${t.operational}\nAnpasad: ${t.adapted}";
-        addMarker(t.id.toString(), t.lat, t.long, "wc", info, toiletIcon);
-      }
-    });
-  }
-
-  loadParks() {
-    getparks().then((parks) {
-      for (Park p in parks) {
-        addMarkerDefault(p.id.toString(), p.lat, p.long, "park", "info");
-      }
-    });
-  }
-
-  addMarker(String id, double lat, double long, String type, String info,
-      Uint8List icon) {
-    MarkerId markerId = MarkerId(id + type);
-
-    final Marker marker = Marker(
-        icon: BitmapDescriptor.fromBytes(icon),
-        markerId: markerId,
-        position: LatLng(lat, long),
-        onTap: () {
-          print("marker tapped: $markerId");
-        });
-
-    setState(() {
-      markers[markerId] = marker;
-    });
-  }
-
-  addMarkerDefault(
-      String id, double lat, double long, String type, String info) {
-    MarkerId markerId = MarkerId(id + type);
-
-    final Marker marker = Marker(
-        markerId: markerId,
-        position: LatLng(lat, long),
-        onTap: () {
-          print("marker tapped: $markerId");
-        });
-
-    setState(() {
-      markers[markerId] = marker;
-    });
   }
 
   Widget buildFloatingSearchBar() {
@@ -234,7 +233,9 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
         FloatingActionButton(
-          onPressed: _currentLocation,
+          onPressed: () {
+            print("Not implemented");
+          },
           child: Icon(Icons.search),
         ),
         FloatingActionButton(
@@ -244,14 +245,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         FloatingActionButton(
           onPressed: _currentLocation,
           child: Icon(Icons.location_on),
-        ),
-        FloatingActionButton(
-          onPressed: loadToilets,
-          child: Icon(Icons.airline_seat_legroom_extra),
-        ),
-        FloatingActionButton(
-          onPressed: loadParks,
-          child: Icon(Icons.park),
         ),
       ],
     );
@@ -275,17 +268,15 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   GoogleMap buildGoogleMap() {
     return GoogleMap(
-      mapToolbarEnabled: false,
-      onMapCreated: _onMapCreated,
-      mapType: MapType.normal,
-      markers: Set<Marker>.of(markers.values),
-      zoomControlsEnabled: false,
-      myLocationEnabled: true,
-      myLocationButtonEnabled: false,
-      initialCameraPosition: CameraPosition(
-        target: _center,
-        zoom: 15,
-      ),
-    );
+        mapType: MapType.normal,
+        initialCameraPosition: dsv,
+        markers: markers,
+        onMapCreated: (GoogleMapController controller) {
+          mapController = controller;
+          controller.setMapStyle(mapStyling);
+          clusterManager.setMapController(controller);
+        },
+        onCameraMove: clusterManager.onCameraMove,
+        onCameraIdle: clusterManager.updateMap);
   }
 }
