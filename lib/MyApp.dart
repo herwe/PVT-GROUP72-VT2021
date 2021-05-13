@@ -9,12 +9,26 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import 'package:google_maps_cluster_manager/google_maps_cluster_manager.dart';
-
+import 'filterSheet.dart';
 import 'park.dart';
+import 'toilet.dart';
 
 class MyApp extends StatefulWidget {
+  Map<String, bool> filterMap = <String, bool>{
+    "Bollspel": false,
+    "Djurhållning": false,
+    "Grillning": false,
+    "Lekpark": false,
+    "Parklek": false,
+    "Plaskdamm": false,
+  };
+
   @override
   _MyAppState createState() => _MyAppState();
+
+  void updateFilterMap(Map<String, bool> map) {
+    filterMap = map;
+  }
 }
 
 class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
@@ -107,16 +121,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     });
   }
 
-  Future<Uint8List> getBytesFromAsset(String path, int width) async {
-    ByteData data = await rootBundle.load(path);
-    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(),
-        targetWidth: width);
-    ui.FrameInfo fi = await codec.getNextFrame();
-    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))
-        .buffer
-        .asUint8List();
-  }
-
   void _currentLocation() async {
     LocationData currentLocation;
     var location = new Location();
@@ -162,7 +166,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             onPressed: () {},
           ),
         ),
-
         FloatingSearchBarAction.searchToClear(
           showIfClosed: false,
         ),
@@ -185,38 +188,44 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return buildViews();
+  void _showFilters() {
+    showModalBottomSheet(context: context, builder: (context) => Filter());
+
+    setState(() {
+      // todo
+      // Här ska filtret uppdateras..... På något sätt
+    });
   }
+
+  @override
+  Widget build(BuildContext context) => MaterialApp(home: buildViews()
+      //mainAxisAlignment: MainAxisAlignment.spaceBetween
+      );
 
   DefaultTabController buildViews() {
     return DefaultTabController(
         length: 2,
         child: Scaffold(
-          resizeToAvoidBottomInset: false,
-          appBar: buildAppBar(),
-          body: TabBarView(
-              physics: NeverScrollableScrollPhysics(),
-              children: [
-            Stack(
-              fit: StackFit.expand,
-              children: [
-                buildGoogleMap(),
-                buildFloatingSearchBar(),
-              ],
-            ),
-            Stack(
-              fit: StackFit.expand,
-              children: [
-                buildFloatingSearchBar(),
-              ],
-            )
-          ]),
-          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-          floatingActionButton: buildFloatingActionButtonsColumn()
-        )
-    );
+            resizeToAvoidBottomInset: false,
+            appBar: buildAppBar(),
+            body:
+                TabBarView(physics: NeverScrollableScrollPhysics(), children: [
+              Stack(
+                fit: StackFit.expand,
+                children: [
+                  buildGoogleMap(),
+                  buildFloatingSearchBar(),
+                ],
+              ),
+              Stack(
+                fit: StackFit.expand,
+                children: [
+                  buildFloatingSearchBar(),
+                ],
+              )
+            ]),
+            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+            floatingActionButton: buildFloatingActionButtonsColumn()));
   }
 
   Column buildFloatingActionButtonsColumn() {
@@ -230,9 +239,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           child: Icon(Icons.search),
         ),
         FloatingActionButton(
-          onPressed: () {
-            print("Not implemented");
-          },
+          onPressed: _showFilters,
           child: Icon(Icons.filter_alt_outlined),
         ),
         FloatingActionButton(
