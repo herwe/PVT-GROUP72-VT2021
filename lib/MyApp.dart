@@ -8,12 +8,26 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 
-import 'toilet.dart';
+import 'filterSheet.dart';
 import 'park.dart';
+import 'toilet.dart';
 
 class MyApp extends StatefulWidget {
+  Map<String, bool> filterMap = <String, bool>{
+    "Bollspel": false,
+    "Djurhållning": false,
+    "Grillning": false,
+    "Lekpark": false,
+    "Parklek": false,
+    "Plaskdamm": false,
+  };
+
   @override
   _MyAppState createState() => _MyAppState();
+
+  void updateFilterMap(Map<String, bool> map) {
+    filterMap = map;
+  }
 }
 
 class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
@@ -110,7 +124,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     });
   }
 
-  addMarkerDefault(String id, double lat, double long, String type, String info) {
+  addMarkerDefault(
+      String id, double lat, double long, String type, String info) {
     MarkerId markerId = MarkerId(id + type);
 
     final Marker marker = Marker(
@@ -152,7 +167,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             onPressed: () {},
           ),
         ),
-
         FloatingSearchBarAction.searchToClear(
           showIfClosed: false,
         ),
@@ -175,64 +189,44 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     );
   }
 
-
   void _showFilters() {
-    showModalBottomSheet(
-        context: context,
-        builder: (context) => Container( child: Column(
-          children: [
-            Row(
-              children: [
-                InputChip(
-                    avatar: CircleAvatar(
-                      backgroundColor: Colors.grey.shade800,
-                      child: Icon(Icons.accessibility),
-                    ),
-                    label: Text('Parklek'),
-                    onPressed: () {
-                      print('I am the one thing in life.');
-                    }
-                ),
-              ],
-            )
-          ],
-        ),
-          color: Colors.transparent,
-        ));
+    showModalBottomSheet(context: context, builder: (context) => Filter());
+
+    setState(() {
+      // todo
+      // Här ska filtret uppdateras..... På något sätt
+    });
   }
 
   @override
   Widget build(BuildContext context) => MaterialApp(home: buildViews()
-    //mainAxisAlignment: MainAxisAlignment.spaceBetween
-  );
+      //mainAxisAlignment: MainAxisAlignment.spaceBetween
+      );
 
   DefaultTabController buildViews() {
     return DefaultTabController(
         length: 2,
         child: Scaffold(
-          resizeToAvoidBottomInset: false,
-          appBar: buildAppBar(),
-          body: TabBarView(
-              physics: NeverScrollableScrollPhysics(),
-              children: [
-            Stack(
-              fit: StackFit.expand,
-              children: [
-                buildGoogleMap(),
-                buildFloatingSearchBar(),
-              ],
-            ),
-            Stack(
-              fit: StackFit.expand,
-              children: [
-                buildFloatingSearchBar(),
-              ],
-            )
-          ]),
-          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-          floatingActionButton: buildFloatingActionButtonsColumn()
-        )
-    );
+            resizeToAvoidBottomInset: false,
+            appBar: buildAppBar(),
+            body:
+                TabBarView(physics: NeverScrollableScrollPhysics(), children: [
+              Stack(
+                fit: StackFit.expand,
+                children: [
+                  buildGoogleMap(),
+                  buildFloatingSearchBar(),
+                ],
+              ),
+              Stack(
+                fit: StackFit.expand,
+                children: [
+                  buildFloatingSearchBar(),
+                ],
+              )
+            ]),
+            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+            floatingActionButton: buildFloatingActionButtonsColumn()));
   }
 
   Column buildFloatingActionButtonsColumn() {
@@ -249,7 +243,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         ),
         FloatingActionButton(
           onPressed: _currentLocation,
-
           child: Icon(Icons.location_on),
         ),
         FloatingActionButton(
@@ -257,9 +250,9 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           child: Icon(Icons.airline_seat_legroom_extra),
         ),
         FloatingActionButton(
-            onPressed: loadParks,
-            child: Icon(Icons.park),
-            ),
+          onPressed: loadParks,
+          child: Icon(Icons.park),
+        ),
       ],
     );
   }
