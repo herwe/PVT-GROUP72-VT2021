@@ -13,8 +13,21 @@ import 'park.dart';
 import 'toilet.dart';
 
 class MyApp extends StatefulWidget {
+  Map<String, bool> filterMap = <String, bool>{
+    "Bollspel": false,
+    "Djurhållning": false,
+    "Grillning": false,
+    "Lekpark": false,
+    "Parklek": false,
+    "Plaskdamm": false,
+  };
+
   @override
   _MyAppState createState() => _MyAppState();
+
+  void updateFilterMap(Map<String, bool> map) {
+    filterMap = map;
+  }
 }
 
 class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
@@ -27,6 +40,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
   Uint8List toiletIcon;
+
 
   initState() {
     super.initState();
@@ -50,6 +64,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         .buffer
         .asUint8List();
   }
+
 
   void _onMapCreated(GoogleMapController controller) {
     if (mounted)
@@ -178,7 +193,11 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   void _showFilters() {
     bool _useChisel = false;
-    showModalBottomSheet(context: context, builder: (context) => Wood());
+    showModalBottomSheet(context: context, builder: (context) => Filter());
+
+    setState(() {
+      // Här ska filtret uppdateras..... På något sätt
+    });
   }
 
   @override

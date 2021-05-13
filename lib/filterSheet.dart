@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_app/MyApp.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
@@ -11,15 +12,27 @@ import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import 'park.dart';
 import 'toilet.dart';
 
-class Wood extends StatefulWidget {
+Map<String, bool> map = <String, bool>{
+  "Bollspel": false,
+  "Djurhållning": false,
+  "Grillning": false,
+  "Lekpark": false,
+  "Parklek": false,
+  "Plaskdamm": false,
+};
+
+class Filter extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() => WoodState();
+  State<StatefulWidget> createState() {
+    return FilterState();
+  }
 }
 
-class WoodState extends State<Wood> {
+class FilterState extends State<Filter> {
   bool _useChisel = false;
   var _parklek = false;
-  List<String> filterStrings = [];
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -36,97 +49,105 @@ class WoodState extends State<Wood> {
                 ),
                 label: Text('Bollspel'),
                 labelStyle:
-                TextStyle(color: _parklek ? Colors.black : Colors.white),
-                selected: _parklek,
+                TextStyle(color: map["Bollspel"] ? Colors.white : Colors.black),
+                selected: map["Bollspel"],
                 onSelected: (bool selected) {
                   setState(() {
-                    if (selected) {
-                      filterStrings.add('Bollspel');
-                    } else {
-                      filterStrings.remove('Bollspel');
-                    }
-                    _parklek = !_parklek;
+                    map["Bollspel"] = !map["Bollspel"];
                   });
                 },
                 selectedColor: Colors.indigo,
                 checkmarkColor: Colors.black,
               ),
               InputChip(
-                  avatar: CircleAvatar(
-                    backgroundColor: Colors.grey.shade800,
-                    child: Icon(Icons.accessibility),
-                  ),
-                  label: Text('Djurhållning'),
-                  onPressed: () {
-                    print('I am the one thing in life.');
-                  }),
+                avatar: CircleAvatar(
+                  backgroundColor: Colors.grey.shade800,
+                  child: Icon(Icons.accessibility),
+                ),
+                label: Text('Djurhållning'),
+                labelStyle:
+                TextStyle(color: map["Djurhållning"] ? Colors.white : Colors.black),
+                selected: map["Djurhållning"],
+                onSelected: (bool selected) {
+                  setState(() {
+                    map["Djurhållning"] = !map["Djurhållning"];
+                  });
+                },
+                selectedColor: Colors.indigo,
+                checkmarkColor: Colors.black,
+              ),
               InputChip(
-                  avatar: CircleAvatar(
-                    backgroundColor: Colors.grey.shade800,
-                    child: Icon(Icons.accessibility),
-                  ),
-                  label: Text('Grillning'),
-                  onPressed: () {
-                    print('I am the one thing in life.');
-                  }),
+                avatar: CircleAvatar(
+                  backgroundColor: Colors.grey.shade800,
+                  child: Icon(Icons.accessibility),
+                ),
+                label: Text('Grillning'),
+                labelStyle:
+                TextStyle(color: map["Grillning"] ? Colors.white : Colors.black),
+                selected: map["Grillning"],
+                onSelected: (bool selected) {
+                  setState(() {
+                    map["Grillning"] = !map["Grillning"];
+                  });
+                },
+                selectedColor: Colors.indigo,
+                checkmarkColor: Colors.black,
+              ),
             ],
           ),
           Row(children: [
             InputChip(
-                avatar: CircleAvatar(
-                  backgroundColor: Colors.grey.shade800,
-                  child: Icon(Icons.accessibility),
-                ),
-                label: Text('Lekpark'),
-                onPressed: () {
-                  print('I am the one thing in life.');
-                }),
+              avatar: CircleAvatar(
+                backgroundColor: Colors.grey.shade800,
+                child: Icon(Icons.accessibility),
+              ),
+              label: Text('Lekpark'),
+              labelStyle:
+              TextStyle(color: map["Lekpark"] ? Colors.white : Colors.black),
+              selected: map["Lekpark"],
+              onSelected: (bool selected) {
+                setState(() {
+                  map["Lekpark"] = !map["Lekpark"];
+                });
+              },
+              selectedColor: Colors.indigo,
+              checkmarkColor: Colors.black,
+            ),
             InputChip(
-                avatar: CircleAvatar(
-                  backgroundColor: Colors.grey.shade800,
-                  child: Icon(Icons.accessibility),
-                ),
-                label: Text('Parklek'),
-                onPressed: () {
-                  print('I am the one thing in life.');
-                }),
+              avatar: CircleAvatar(
+                backgroundColor: Colors.grey.shade800,
+                child: Icon(Icons.accessibility),
+              ),
+              label: Text('Parklek'),
+              labelStyle:
+              TextStyle(color: map["Parklek"] ? Colors.white : Colors.black),
+              selected: map["Parklek"],
+              onSelected: (bool selected) {
+                setState(() {
+                  map["Parklek"] = !map["Parklek"];
+                });
+              },
+              selectedColor: Colors.indigo,
+              checkmarkColor: Colors.black,
+            ),
             InputChip(
-                avatar: CircleAvatar(
-                  backgroundColor: Colors.grey.shade800,
-                  child: Icon(Icons.accessibility),
-                ),
-                label: Text('Plaskdamm'),
-                onPressed: () {
-                  print('I am the one thing in life.');
-                }),
+              avatar: CircleAvatar(
+                backgroundColor: Colors.grey.shade800,
+                child: Icon(Icons.accessibility),
+              ),
+              label: Text('Plaskdamm'),
+              labelStyle:
+              TextStyle(color: map["Plaskdamm"] ? Colors.white : Colors.black),
+              selected: map["Plaskdamm"],
+              onSelected: (bool selected) {
+                setState(() {
+                  map["Plaskdamm"] = !map["Plaskdamm"];
+                });
+              },
+              selectedColor: Colors.indigo,
+              checkmarkColor: Colors.black,
+            ),
           ]),
-          /*
-          Row(
-            children: [
-              InputChip(
-                  avatar: CircleAvatar(
-                    backgroundColor: Colors.grey.shade800,
-                    child: Icon(Icons.accessibility),
-                  ),
-                  label: Text('Utomhusbad'),
-                  onPressed: () {
-                    print('I am the one thing in life.');
-                  }),
-              InputChip(
-                  label: Text('Use Chisel'),
-                  selectedColor: Colors.amber,
-                  checkmarkColor: Colors.black,
-                  selected: _useChisel,
-                  onSelected: (bool newValue) {
-                    setState(() {
-                      _useChisel = !_useChisel;
-                      print(_useChisel);
-                    });
-                  }),
-            ],
-          ),
-
-               */
           Container(
             child: InputChip(
                 avatar: CircleAvatar(
@@ -135,7 +156,7 @@ class WoodState extends State<Wood> {
                 ),
                 label: Text('OK'),
                 onPressed: () {
-                  print('I am the one thing in life.');
+                  MyApp().updateFilterMap(map);
                 }),
           )
         ],
