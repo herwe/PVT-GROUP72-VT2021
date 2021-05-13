@@ -7,8 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
-import 'filterSheet.dart';
 
+import 'filterSheet.dart';
 import 'park.dart';
 import 'toilet.dart';
 
@@ -41,7 +41,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
   Uint8List toiletIcon;
 
-
   initState() {
     super.initState();
 
@@ -64,7 +63,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         .buffer
         .asUint8List();
   }
-
 
   void _onMapCreated(GoogleMapController controller) {
     if (mounted)
@@ -192,10 +190,10 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   }
 
   void _showFilters() {
-    bool _useChisel = false;
     showModalBottomSheet(context: context, builder: (context) => Filter());
 
     setState(() {
+      // todo
       // Här ska filtret uppdateras..... På något sätt
     });
   }
