@@ -124,21 +124,31 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     return BitmapDescriptor.fromBytes(data.buffer.asUint8List());
   }
 
+  List<ClusterItem<Park>> discardedParks = [];
   void _updateMarkers(Set<Marker> markers) {
     print('Updated ${markers.length} markers');
     setState(() {
       if (!noneSelected()) {
         parks.removeWhere((element) {
           for (Qualities q in filterMap.keys) {
-            if (filterMap[q]) {
-              if (!(element.item.parkQualities.contains(q))) {
-                return true;
-              }
+            if (filterMap[q] && !element.item.parkQualities.contains(q)) {
+              discardedParks.add(element);
+              return true;
             }
           }
           return false;
         });
       }
+
+     discardedParks.removeWhere((element) {
+       for (Qualities q in filterMap.keys) {
+         if (filterMap[q] && !(element.item).parkQualities.contains(q)) {
+           return false;
+         }
+       }
+       parks.add(element);
+       return true;
+     });
 
       this.markers = markers;
     });
