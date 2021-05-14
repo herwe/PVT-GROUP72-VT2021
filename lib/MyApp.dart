@@ -46,17 +46,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   List<ClusterItem<Park>> parks;
   _initParks() {
+    print("init");
     parks = [];
 
     getParks().then((loadedParks) {
       for (Park p in loadedParks) {
-        for (Qualities q in p.parkQualities) {
-          if (filterMap.containsKey(q)) {
-            if (filterMap[q] == true) {
-              parks.add(ClusterItem(LatLng(p.lat, p.long), item: p));
-            }
-          }
-        }
+        parks.add(ClusterItem(LatLng(p.lat, p.long), item: p));
       }
     });
   }
@@ -86,7 +81,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           markerId: MarkerId(cluster.getId()),
           position: cluster.location,
           onTap: () {
-            if (cluster.items.length == 1) {
+            if (cluster.count == 1) {
               Park p = cluster.items.first as Park;
               print("This is ${p.name} and has the following qualities:");
               for (Qualities q in p.parkQualities) {
@@ -132,8 +127,25 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   void _updateMarkers(Set<Marker> markers) {
     print('Updated ${markers.length} markers');
     setState(() {
+      if (!noneSelected()) {
+        parks.removeWhere((element) {
+          for (Qualities q in filterMap.keys) {
+            if (filterMap[q]) {
+              if (!(element.item.parkQualities.contains(q))) {
+                return true;
+              }
+            }
+          }
+          return false;
+        });
+      }
+
       this.markers = markers;
     });
+  }
+
+  bool noneSelected() {
+    return !filterMap.values.contains(true);
   }
 
   void _currentLocation() async {
