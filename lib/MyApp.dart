@@ -1,32 +1,34 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/qualities.dart';
+import 'package:google_maps_cluster_manager/google_maps_cluster_manager.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
-import 'package:google_maps_cluster_manager/google_maps_cluster_manager.dart';
+
 import 'filterSheet.dart';
 import 'park.dart';
-import 'toilet.dart';
+
+Map<Qualities, bool> filterMap = <Qualities, bool>{
+  Qualities.ballplay: false,
+  Qualities.parkplay: false,
+  Qualities.animal: false,
+  Qualities.grill: false,
+  Qualities.natureplay: false,
+  Qualities.water_play: false,
+  Qualities.playground: false,
+  Qualities.out_bath: false,
+};
 
 class MyApp extends StatefulWidget {
-  Map<String, bool> filterMap = <String, bool>{
-    "Bollspel": false,
-    "Djurhållning": false,
-    "Grillning": false,
-    "Lekpark": false,
-    "Parklek": false,
-    "Plaskdamm": false,
-  };
-
   @override
   _MyAppState createState() => _MyAppState();
 
-  void updateFilterMap(Map<String, bool> map) {
+  void updateFilterMap(Map<Qualities, bool> map) {
     filterMap = map;
   }
 }
@@ -37,14 +39,17 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   ClusterManager clusterManager;
 
   // Coordinates for DSV, Kista.
-  final CameraPosition dsv = CameraPosition(target: LatLng(59.40672485297707, 17.94522607914621), zoom: 10);
+  final CameraPosition dsv = CameraPosition(
+      target: LatLng(59.40672485297707, 17.94522607914621), zoom: 10);
 
   Set<Marker> markers = Set();
-  
+
   List<ClusterItem<Park>> parks;
   _initParks() {
+    print("init");
     parks = [];
 
+    //All parks are loaded and stored in ClusterItems.
     getParks().then((loadedParks) {
       for (Park p in loadedParks) {
         parks.add(ClusterItem(LatLng(p.lat, p.long), item: p));
@@ -65,27 +70,34 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   //Cluster implementation stolen from: https://pub.dev/packages/google_maps_cluster_manager
   ClusterManager _initClusterManager() {
-    return ClusterManager<Park>(parks, _updateMarkers, initialZoom: dsv.zoom, stopClusteringZoom: 14.0, markerBuilder: markerBuilder); //Change stopClusteringZoom at your own risk
+    return ClusterManager<Park>(parks, _updateMarkers,
+        initialZoom: dsv.zoom,
+        stopClusteringZoom: 14.0,
+        markerBuilder:
+            markerBuilder); //Change stopClusteringZoom at your own risk
   }
 
   static Future<Marker> Function(Cluster) get markerBuilder => (cluster) async {
-    return Marker(
-      markerId: MarkerId(cluster.getId()),
-      position: cluster.location,
-      onTap: () {
-        if (cluster.items.length == 1) {
-          Park p = cluster.items.first as Park;
-          print("This is ${p.name} and has the following qualities:");
-          for (Qualities q in p.parkQualities) {
-            print(q.toString());
-          }
-        }
-      },
-      icon: await getClusterBitmap(cluster.isMultiple ? 125 : 75, text: cluster.isMultiple ? cluster.count.toString() : null),
-    );
-  };
+        return Marker(
+          markerId: MarkerId(cluster.getId()),
+          position: cluster.location,
+          onTap: () {
+            if (cluster.count == 1) {
+              Park p = cluster.items.first as Park;
+              print("This is ${p.name} and has the following qualities:");
+              for (Qualities q in p.parkQualities) {
+                print(q.toString());
+              }
+            }
+          },
+          //If to cluster consists of multiple parks it is bigger and gets the amount of parks as icon, needs to be defined as own function to notuse default values..
+          icon: await getClusterBitmap(cluster.isMultiple ? 125 : 75,
+              text: cluster.isMultiple ? cluster.count.toString() : null),
+        );
+      };
 
-  static Future<BitmapDescriptor> getClusterBitmap(int size, {String text}) async {
+  static Future<BitmapDescriptor> getClusterBitmap(int size,
+      {String text}) async {
     final ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
     final Canvas canvas = Canvas(pictureRecorder);
     final Paint paint1 = Paint()..color = Colors.lightGreen;
@@ -114,11 +126,45 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     return BitmapDescriptor.fromBytes(data.buffer.asUint8List());
   }
 
+  List<ClusterItem<Park>> discardedParks = []; //Saves all the parks that have been discarded by the filter.
   void _updateMarkers(Set<Marker> markers) {
     print('Updated ${markers.length} markers');
     setState(() {
+      //If no filters are selected, for every quality remove the pars that do not have it.
+      if (!noneSelected()) {
+        parks.removeWhere((element) => removePark(element));
+      }
+
+      //Adds the previously discarded parks that now conform to the filter.
+     discardedParks.removeWhere((element) => reAddPark(element));
+
+      //Updates the markers.
       this.markers = markers;
     });
+  }
+
+  bool removePark(ClusterItem<Park> element) {
+    for (Qualities q in filterMap.keys) {
+      if (filterMap[q] && !element.item.parkQualities.contains(q)) {
+        discardedParks.add(element); //To avoid concurrent modification exception.
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool reAddPark(ClusterItem<Park> element) {
+    for (Qualities q in filterMap.keys) {
+      if (filterMap[q] && !(element.item).parkQualities.contains(q)) {
+        return false;
+      }
+    }
+    parks.add(element);
+    return true;
+  }
+
+  bool noneSelected() {
+    return !filterMap.values.contains(true);
   }
 
   void _currentLocation() async {
@@ -190,11 +236,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   void _showFilters() {
     showModalBottomSheet(context: context, builder: (context) => Filter());
-
-    setState(() {
-      // todo
-      // Här ska filtret uppdateras..... På något sätt
-    });
+    this.reassemble();
   }
 
   @override
@@ -232,12 +274,15 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
+        /*** THIS BUTTON IS PROBABLY NOT NEEDED. ***\
         FloatingActionButton(
           onPressed: () {
             print("Not implemented");
           },
           child: Icon(Icons.search),
         ),
+
+         */
         FloatingActionButton(
           onPressed: _showFilters,
           child: Icon(Icons.filter_alt_outlined),
@@ -268,6 +313,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   GoogleMap buildGoogleMap() {
     return GoogleMap(
+        mapToolbarEnabled: false,
+        zoomControlsEnabled: false,
         mapType: MapType.normal,
         initialCameraPosition: dsv,
         markers: markers,

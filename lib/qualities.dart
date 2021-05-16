@@ -9,7 +9,7 @@ enum Qualities {
   grill,
   sleigh,
   view,
-  forrest,
+  forest,
   animal,
   water,
   out_bath,
