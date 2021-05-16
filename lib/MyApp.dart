@@ -248,7 +248,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                 ),
                 ListTile(
                   leading: Icon(Icons.account_circle),
-                  title: Text("Log in")
+                  title: Text("Logga in")
                 )
               ],
             )
