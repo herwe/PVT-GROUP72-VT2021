@@ -49,6 +49,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     print("init");
     parks = [];
 
+    //All parks are loaded and stored in ClusterItems.
     getParks().then((loadedParks) {
       for (Park p in loadedParks) {
         parks.add(ClusterItem(LatLng(p.lat, p.long), item: p));
@@ -89,6 +90,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
               }
             }
           },
+          //If to cluster consists of multiple parks it is bigger and gets the amount of parks as icon, needs to be defined as own function to notuse default values..
           icon: await getClusterBitmap(cluster.isMultiple ? 125 : 75,
               text: cluster.isMultiple ? cluster.count.toString() : null),
         );
@@ -124,34 +126,41 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     return BitmapDescriptor.fromBytes(data.buffer.asUint8List());
   }
 
-  List<ClusterItem<Park>> discardedParks = [];
+  List<ClusterItem<Park>> discardedParks = []; //Saves all the parks that have been discarded by the filter.
   void _updateMarkers(Set<Marker> markers) {
     print('Updated ${markers.length} markers');
     setState(() {
+      //If no filters are selected, for every quality remove the pars that do not have it.
       if (!noneSelected()) {
-        parks.removeWhere((element) {
-          for (Qualities q in filterMap.keys) {
-            if (filterMap[q] && !element.item.parkQualities.contains(q)) {
-              discardedParks.add(element);
-              return true;
-            }
-          }
-          return false;
-        });
+        parks.removeWhere((element) => removePark(element));
       }
 
-     discardedParks.removeWhere((element) {
-       for (Qualities q in filterMap.keys) {
-         if (filterMap[q] && !(element.item).parkQualities.contains(q)) {
-           return false;
-         }
-       }
-       parks.add(element);
-       return true;
-     });
+      //Adds the previously discarded parks that now conform to the filter.
+     discardedParks.removeWhere((element) => reAddPark(element));
 
+      //Updates the markers.
       this.markers = markers;
     });
+  }
+
+  bool removePark(ClusterItem<Park> element) {
+    for (Qualities q in filterMap.keys) {
+      if (filterMap[q] && !element.item.parkQualities.contains(q)) {
+        discardedParks.add(element); //To avoid concurrent modification exception.
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool reAddPark(ClusterItem<Park> element) {
+    for (Qualities q in filterMap.keys) {
+      if (filterMap[q] && !(element.item).parkQualities.contains(q)) {
+        return false;
+      }
+    }
+    parks.add(element);
+    return true;
   }
 
   bool noneSelected() {

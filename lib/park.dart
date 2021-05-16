@@ -63,7 +63,7 @@ class Park extends Location {
     }
 
     if (json['forrest']) {
-      parkQualities.add(Qualities.forrest);
+      parkQualities.add(Qualities.forest);
     }
 
     if (json['animal']) {
