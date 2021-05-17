@@ -137,8 +137,9 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                                     onPressed: () => print("Not implemented"),
                                     child: Text("Favorit"),
                                     style: ElevatedButton.styleFrom(
-                                      primary: Colors.yellowAccent,
-                                    )),
+                                        primary: Colors.yellowAccent,
+                                        textStyle:
+                                            TextStyle(color: Colors.black))),
                                 ElevatedButton(
                                     onPressed: () => Navigator.pop(context),
                                     child: Text("Stäng"),
