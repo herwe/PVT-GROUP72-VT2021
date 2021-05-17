@@ -78,9 +78,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   }
 
   static Future<Marker> Function(Cluster) get markerBuilder => (cluster) async {
+        Park p = cluster.items.first as Park;
         return Marker(
           markerId: MarkerId(cluster.getId()),
           position: cluster.location,
+          infoWindow: InfoWindow(
+              title: p.name),
           onTap: () {
             if (cluster.count == 1) {
               Park p = cluster.items.first as Park;
