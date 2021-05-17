@@ -89,10 +89,10 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
               backgroundColor: Colors.grey.shade800,
               child: Icon(Icons.accessibility),
             ),
-            label: Text(q.toString()),
+            label: Text(ExtendsQualitiesEnum.getName(q)),
             labelStyle: TextStyle(
                 color: map[Qualities.grill] ? Colors.white : Colors.black),
-            selected: map[Qualities.grill],
+            selected: false,
             onSelected: (bool selected) {
               setState(() {
                 map[Qualities.grill] = !map[Qualities.grill];
@@ -135,14 +135,14 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                               children: <Widget>[
                                 ElevatedButton(
                                     onPressed: () => print("Not implemented"),
-                                    child: Text("Favorit"),
+                                    child: Text("Favorit", style: TextStyle(color: Colors.black)),
                                     style: ElevatedButton.styleFrom(
                                         primary: Colors.yellowAccent,
                                         textStyle:
                                             TextStyle(color: Colors.black))),
                                 ElevatedButton(
                                     onPressed: () => Navigator.pop(context),
-                                    child: Text("Stäng"),
+                                    child: Text("Stäng", style: TextStyle(color: Colors.black)),
                                     style: ElevatedButton.styleFrom(
                                         primary: Colors.lightGreen))
                               ],
