@@ -45,6 +45,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   Set<Marker> markers = Set();
 
   List<ClusterItem<Park>> parks;
+
   _initParks() {
     print("init");
     parks = [];
@@ -78,14 +79,28 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   }
 
   buildParkInfo(Park p) {
-    return Column(
+    return Wrap(
+      spacing: 8.0, // gap between adjacent chips
+      runSpacing: 4.0, // gap between lines
       children: [
-        for (int i = 0; i < p.parkQualities.length; i+2) if (i + 1 >= p.parkQualities.length)
-          Container(
-
-        ) else Row(
-
-        )
+        for (Qualities q in p.parkQualities)
+          InputChip(
+            avatar: CircleAvatar(
+              backgroundColor: Colors.grey.shade800,
+              child: Icon(Icons.accessibility),
+            ),
+            label: Text(q.toString()),
+            labelStyle: TextStyle(
+                color: map[Qualities.grill] ? Colors.white : Colors.black),
+            selected: map[Qualities.grill],
+            onSelected: (bool selected) {
+              setState(() {
+                map[Qualities.grill] = !map[Qualities.grill];
+              });
+            },
+            selectedColor: Colors.indigo,
+            checkmarkColor: Colors.black,
+          )
       ],
     );
   }
@@ -102,37 +117,38 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                   context: context,
                   builder: (BuildContext context) {
                     return Container(
-                      height: 400,
-                      color: Colors.blue,
-                      child: Column(
-                        children: <Widget>[
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.max,
-                            children: <Widget>[
-                              Text(p.name),
-                              buildParkInfo(p)
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              ElevatedButton(onPressed: () => print("Not implemented"), child: Text("Favorit"),
-                                  style: ElevatedButton.styleFrom(
-                                    primary: Colors.yellowAccent,
-                                  )),
-                              ElevatedButton(onPressed: () => Navigator.pop(context), child: Text("Stäng"),
-                                  style: ElevatedButton.styleFrom(
-                                      primary: Colors.lightGreen
-                                  ))
-                            ],
-                          ),
-                        ],
-                      )
-                    );
-                  }
-              );
+                        height: 400,
+                        color: Colors.blue,
+                        child: Column(
+                          children: <Widget>[
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.max,
+                              children: <Widget>[
+                                Text(p.name),
+                                buildParkInfo(p)
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                ElevatedButton(
+                                    onPressed: () => print("Not implemented"),
+                                    child: Text("Favorit"),
+                                    style: ElevatedButton.styleFrom(
+                                      primary: Colors.yellowAccent,
+                                    )),
+                                ElevatedButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: Text("Stäng"),
+                                    style: ElevatedButton.styleFrom(
+                                        primary: Colors.lightGreen))
+                              ],
+                            ),
+                          ],
+                        ));
+                  });
             }
           },
           //If to cluster consists of multiple parks it is bigger and gets the amount of parks as icon, needs to be defined as own function to notuse default values..
@@ -171,7 +187,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     return BitmapDescriptor.fromBytes(data.buffer.asUint8List());
   }
 
-  List<ClusterItem<Park>> discardedParks = []; //Saves all the parks that have been discarded by the filter.
+  List<ClusterItem<Park>> discardedParks =
+      []; //Saves all the parks that have been discarded by the filter.
   void _updateMarkers(Set<Marker> markers) {
     print('Updated ${markers.length} markers');
     setState(() {
@@ -181,7 +198,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       }
 
       //Adds the previously discarded parks that now conform to the filter.
-     discardedParks.removeWhere((element) => reAddPark(element));
+      discardedParks.removeWhere((element) => reAddPark(element));
 
       //Updates the markers.
       this.markers = markers;
@@ -191,7 +208,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   bool removePark(ClusterItem<Park> element) {
     for (Qualities q in filterMap.keys) {
       if (filterMap[q] && !element.item.parkQualities.contains(q)) {
-        discardedParks.add(element); //To avoid concurrent modification exception.
+        discardedParks
+            .add(element); //To avoid concurrent modification exception.
         return true;
       }
     }
@@ -320,12 +338,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
         /*** THIS BUTTON IS PROBABLY NOT NEEDED. ***\
-        FloatingActionButton(
-          onPressed: () {
+            FloatingActionButton(
+            onPressed: () {
             print("Not implemented");
-          },
-          child: Icon(Icons.search),
-        ),
+            },
+            child: Icon(Icons.search),
+            ),
 
          */
         FloatingActionButton(
