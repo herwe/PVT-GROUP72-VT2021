@@ -77,17 +77,62 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             markerBuilder); //Change stopClusteringZoom at your own risk
   }
 
-  static Future<Marker> Function(Cluster) get markerBuilder => (cluster) async {
+  buildParkInfo(Park p) {
+    return Column(
+      children: [
+        for (int i = 0; i < p.parkQualities.length; i+2) if (i + 1 >= p.parkQualities.length)
+          Container(
+
+        ) else Row(
+
+        )
+      ],
+    );
+  }
+
+  Future<Marker> Function(Cluster) get markerBuilder => (cluster) async {
         return Marker(
           markerId: MarkerId(cluster.getId()),
           position: cluster.location,
           onTap: () {
             if (cluster.count == 1) {
               Park p = cluster.items.first as Park;
-              print("This is ${p.name} and has the following qualities:");
-              for (Qualities q in p.parkQualities) {
-                print(q.toString());
-              }
+
+              showModalBottomSheet<void>(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return Container(
+                      height: 400,
+                      color: Colors.blue,
+                      child: Column(
+                        children: <Widget>[
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.max,
+                            children: <Widget>[
+                              Text(p.name),
+                              buildParkInfo(p)
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              ElevatedButton(onPressed: () => print("Not implemented"), child: Text("Favorit"),
+                                  style: ElevatedButton.styleFrom(
+                                    primary: Colors.yellowAccent,
+                                  )),
+                              ElevatedButton(onPressed: () => Navigator.pop(context), child: Text("Stäng"),
+                                  style: ElevatedButton.styleFrom(
+                                      primary: Colors.lightGreen
+                                  ))
+                            ],
+                          ),
+                        ],
+                      )
+                    );
+                  }
+              );
             }
           },
           //If to cluster consists of multiple parks it is bigger and gets the amount of parks as icon, needs to be defined as own function to notuse default values..
