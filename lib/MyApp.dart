@@ -89,7 +89,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
               backgroundColor: Colors.grey.shade800,
               child: Icon(Icons.accessibility),
             ),
-            label: Text(ExtendsQualitiesEnum.getName(q)),
+            label: Text(q.formatted),
             labelStyle: TextStyle(
                 color: map[Qualities.grill] ? Colors.white : Colors.black),
             selected: false,
@@ -388,6 +388,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           clusterManager.setMapController(controller);
         },
         onCameraMove: clusterManager.onCameraMove,
-        onCameraIdle: clusterManager.updateMap);
+        onCameraIdle: clusterManager.updateMap,
+        cameraTargetBounds: new CameraTargetBounds(
+          new LatLngBounds(
+            northeast: LatLng(59.491684, 18.355865),
+            southwest: LatLng(59.220681, 17.837629),
+        ))
+    );
   }
 }
