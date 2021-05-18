@@ -297,14 +297,32 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                         children: [
                           Column(
                             children: [
-
+                              buildListView()
                             ],
                           )
                         ],
-              )
+                      )
             ]),
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
             floatingActionButton: buildFloatingActionButtonsColumn()));
+  }
+
+  List<String> sl = ["a", "b", "c", "d"];
+  buildListView() {
+    return Expanded(
+      child: ListView.builder(
+          itemCount: sl.length,
+          itemBuilder: (BuildContext context, int i) {
+            return new Container(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black)
+              ),
+              child: Text(sl[i]),
+            );
+          }
+      )
+    );
   }
 
   Drawer buildDrawer() {
