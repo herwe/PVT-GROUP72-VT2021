@@ -28,6 +28,7 @@ dependencies:
   http:
   material_floating_search_bar:
   google_maps_cluster_manager:
+  flutter_typeahead:
 
 
 

@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/qualities.dart';
 import 'package:google_maps_cluster_manager/google_maps_cluster_manager.dart';
@@ -45,6 +46,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   Set<Marker> markers = Set();
 
   List<ClusterItem<Park>> parks;
+
   _initParks() {
     print("init");
     parks = [];
@@ -55,6 +57,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         parks.add(ClusterItem(LatLng(p.lat, p.long), item: p));
       }
     });
+    parks.sort((a, b) => a.item.name.compareTo(b.item.name));
   }
 
   initState() {
@@ -77,20 +80,41 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             markerBuilder); //Change stopClusteringZoom at your own risk
   }
 
-  static Future<Marker> Function(Cluster) get markerBuilder => (cluster) async {
-        Park p = cluster.items.first as Park;
+  buildParkInfo(Park p) {
+    return Wrap(
+      spacing: 8.0, // gap between adjacent chips
+      runSpacing: 4.0, // gap between lines
+      children: [
+        for (Qualities q in p.parkQualities)
+          InputChip(
+            avatar: CircleAvatar(
+              backgroundColor: Colors.grey.shade800,
+              child: Icon(Icons.accessibility),
+            ),
+            label: Text(q.formatted),
+            labelStyle: TextStyle(
+                color: map[Qualities.grill] ? Colors.white : Colors.black),
+            selected: false,
+            onSelected: (bool selected) {
+              setState(() {
+                map[Qualities.grill] = !map[Qualities.grill];
+              });
+            },
+            selectedColor: Colors.indigo,
+            checkmarkColor: Colors.black,
+          )
+      ],
+    );
+  }
+
+  Future<Marker> Function(Cluster) get markerBuilder => (cluster) async {
         return Marker(
           markerId: MarkerId(cluster.getId()),
           position: cluster.location,
-          infoWindow: InfoWindow(
-              title: p.name),
           onTap: () {
             if (cluster.count == 1) {
               Park p = cluster.items.first as Park;
-              print("This is ${p.name} and has the following qualities:");
-              for (Qualities q in p.parkQualities) {
-                print(q.toString());
-              }
+              showClickedParkSheet(p);
             }
           },
           //If to cluster consists of multiple parks it is bigger and gets the amount of parks as icon, needs to be defined as own function to notuse default values..
@@ -129,7 +153,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     return BitmapDescriptor.fromBytes(data.buffer.asUint8List());
   }
 
-  List<ClusterItem<Park>> discardedParks = []; //Saves all the parks that have been discarded by the filter.
+  List<ClusterItem<Park>> discardedParks =
+      []; //Saves all the parks that have been discarded by the filter.
   void _updateMarkers(Set<Marker> markers) {
     print('Updated ${markers.length} markers');
     setState(() {
@@ -139,7 +164,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       }
 
       //Adds the previously discarded parks that now conform to the filter.
-     discardedParks.removeWhere((element) => reAddPark(element));
+      discardedParks.removeWhere((element) => reAddPark(element));
 
       //Updates the markers.
       this.markers = markers;
@@ -149,7 +174,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   bool removePark(ClusterItem<Park> element) {
     for (Qualities q in filterMap.keys) {
       if (filterMap[q] && !element.item.parkQualities.contains(q)) {
-        discardedParks.add(element); //To avoid concurrent modification exception.
+        discardedParks
+            .add(element); //To avoid concurrent modification exception.
         return true;
       }
     }
@@ -202,8 +228,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       width: isPortrait ? 600 : 500,
       debounceDelay: const Duration(milliseconds: 500),
       onQueryChanged: (query) {
+        showParksThatMatchQuery(getSuggestions(query));
+
+        //change what is shown as suggestions
         // Call your model, bloc, controller here.
       },
+
       // Specify a custom transition to be used for
       // animating between opened and closed stated.
       transition: CircularFloatingSearchBarTransition(),
@@ -276,28 +306,24 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   Drawer buildDrawer() {
     return Drawer(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: const <Widget>[
-                DrawerHeader(
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                    ),
-                  child: Text(
-                    'Drawer',
-                    style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    ),
-                  ),
-                ),
-                ListTile(
-                  leading: Icon(Icons.account_circle),
-                  title: Text("Logga in")
-                )
-              ],
-            )
-          );
+        child: ListView(
+      padding: EdgeInsets.zero,
+      children: const <Widget>[
+        DrawerHeader(
+          decoration: BoxDecoration(
+            color: Colors.blue,
+          ),
+          child: Text(
+            'Drawer',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+            ),
+          ),
+        ),
+        ListTile(leading: Icon(Icons.account_circle), title: Text("Logga in"))
+      ],
+    ));
   }
 
   Column buildFloatingActionButtonsColumn() {
@@ -305,12 +331,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
         /*** THIS BUTTON IS PROBABLY NOT NEEDED. ***\
-        FloatingActionButton(
-          onPressed: () {
+            FloatingActionButton(
+            onPressed: () {
             print("Not implemented");
-          },
-          child: Icon(Icons.search),
-        ),
+            },
+            child: Icon(Icons.search),
+            ),
 
          */
         FloatingActionButton(
@@ -354,6 +380,56 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           clusterManager.setMapController(controller);
         },
         onCameraMove: clusterManager.onCameraMove,
-        onCameraIdle: clusterManager.updateMap);
+        onCameraIdle: clusterManager.updateMap,
+        cameraTargetBounds: new CameraTargetBounds(new LatLngBounds(
+          northeast: LatLng(59.491684, 18.355865),
+          southwest: LatLng(59.220681, 17.837629),
+        )));
+  }
+
+  getSuggestions(String pattern) {
+    return new List<ClusterItem<Park>>();
+  }
+
+  showClickedParkSheet(p) {
+    showModalBottomSheet<void>(
+        context: context,
+        builder: (BuildContext context) {
+          return Container(
+              height: 400,
+              color: Colors.blue,
+              child: Column(
+                children: <Widget>[
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.max,
+                    children: <Widget>[Text(p.name), buildParkInfo(p)],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      ElevatedButton(
+                          onPressed: () => print("Not implemented"),
+                          child: Text("Favorit",
+                              style: TextStyle(color: Colors.black)),
+                          style: ElevatedButton.styleFrom(
+                              primary: Colors.yellowAccent,
+                              textStyle: TextStyle(color: Colors.black))),
+                      ElevatedButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text("Stäng",
+                              style: TextStyle(color: Colors.black)),
+                          style: ElevatedButton.styleFrom(
+                              primary: Colors.lightGreen))
+                    ],
+                  ),
+                ],
+              ));
+        });
+  }
+
+  void showParksThatMatchQuery(suggestions) {
+    //todo show some parks
   }
 }
