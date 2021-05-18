@@ -109,6 +109,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         return Marker(
           markerId: MarkerId(cluster.getId()),
           position: cluster.location,
+          infoWindow: InfoWindow(
+              title: p.name),
           onTap: () {
             if (cluster.count == 1) {
               Park p = cluster.items.first as Park;
@@ -314,6 +316,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         child: Scaffold(
             resizeToAvoidBottomInset: false,
             appBar: buildAppBar(),
+            drawer: buildDrawer(),
             body:
                 TabBarView(physics: NeverScrollableScrollPhysics(), children: [
               Stack(
@@ -332,6 +335,32 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             ]),
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
             floatingActionButton: buildFloatingActionButtonsColumn()));
+  }
+
+  Drawer buildDrawer() {
+    return Drawer(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: const <Widget>[
+                DrawerHeader(
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                    ),
+                  child: Text(
+                    'Drawer',
+                    style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    ),
+                  ),
+                ),
+                ListTile(
+                  leading: Icon(Icons.account_circle),
+                  title: Text("Logga in")
+                )
+              ],
+            )
+          );
   }
 
   Column buildFloatingActionButtonsColumn() {

@@ -100,7 +100,8 @@ Future<List<Park>> getParks() async {
   try {
     var url = Uri.parse('http://78.72.246.146:8280/group2/parks/all');
     http.Response response = await http.get(url);
-    final data = jsonDecode(response.body);
+    //final data = jsonDecode(response.body);
+    final data = json.decode(utf8.decode(response.bodyBytes));
 
     List<Park> parks = [];
     for (Map m in data) {
