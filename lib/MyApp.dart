@@ -228,9 +228,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       width: isPortrait ? 600 : 500,
       debounceDelay: const Duration(milliseconds: 500),
       onQueryChanged: (query) {
-        getSuggestions(query);
+        showParksThatMatchQuery(getSuggestions(query));
+
+        //change what is shown as suggestions
         // Call your model, bloc, controller here.
       },
+
       // Specify a custom transition to be used for
       // animating between opened and closed stated.
       transition: CircularFloatingSearchBarTransition(),
@@ -384,7 +387,9 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         )));
   }
 
-  getSuggestions(String pattern) {}
+  getSuggestions(String pattern) {
+    return new List<ClusterItem<Park>>();
+  }
 
   showClickedParkSheet(p) {
     showModalBottomSheet<void>(
@@ -422,5 +427,9 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                 ],
               ));
         });
+  }
+
+  void showParksThatMatchQuery(suggestions) {
+    //todo show some parks
   }
 }
