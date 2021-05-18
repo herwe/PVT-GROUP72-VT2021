@@ -3,12 +3,13 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/qualities.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:google_maps_cluster_manager/google_maps_cluster_manager.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 
 import 'filterSheet.dart';
 import 'park.dart';
@@ -56,6 +57,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         parks.add(ClusterItem(LatLng(p.lat, p.long), item: p));
       }
     });
+    parks.sort((a, b) => a.item.name.compareTo(b.item.name));
   }
 
   initState() {
@@ -109,49 +111,10 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         return Marker(
           markerId: MarkerId(cluster.getId()),
           position: cluster.location,
-          infoWindow: InfoWindow(
-              title: p.name),
           onTap: () {
             if (cluster.count == 1) {
               Park p = cluster.items.first as Park;
-
-              showModalBottomSheet<void>(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return Container(
-                        height: 400,
-                        color: Colors.blue,
-                        child: Column(
-                          children: <Widget>[
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.max,
-                              children: <Widget>[
-                                Text(p.name),
-                                buildParkInfo(p)
-                              ],
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                ElevatedButton(
-                                    onPressed: () => print("Not implemented"),
-                                    child: Text("Favorit", style: TextStyle(color: Colors.black)),
-                                    style: ElevatedButton.styleFrom(
-                                        primary: Colors.yellowAccent,
-                                        textStyle:
-                                            TextStyle(color: Colors.black))),
-                                ElevatedButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: Text("Stäng", style: TextStyle(color: Colors.black)),
-                                    style: ElevatedButton.styleFrom(
-                                        primary: Colors.lightGreen))
-                              ],
-                            ),
-                          ],
-                        ));
-                  });
+              showClickedParkSheet(p);
             }
           },
           //If to cluster consists of multiple parks it is bigger and gets the amount of parks as icon, needs to be defined as own function to notuse default values..
@@ -254,48 +217,28 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   Widget buildFloatingSearchBar() {
     final isPortrait =
         MediaQuery.of(context).orientation == Orientation.portrait;
-    return FloatingSearchBar(
-      hint: 'Search...',
-      scrollPadding: const EdgeInsets.only(top: 16, bottom: 56),
-      transitionDuration: const Duration(milliseconds: 800),
-      transitionCurve: Curves.easeInOut,
-      physics: const BouncingScrollPhysics(),
-      axisAlignment: isPortrait ? 0.0 : -1.0,
-      openAxisAlignment: 0.0,
-      width: isPortrait ? 600 : 500,
-      debounceDelay: const Duration(milliseconds: 500),
-      onQueryChanged: (query) {
-        // Call your model, bloc, controller here.
+    return TypeAheadField(
+      textFieldConfiguration: TextFieldConfiguration(
+          autofocus: true,
+          style: DefaultTextStyle.of(context)
+              .style
+              .copyWith(fontStyle: FontStyle.italic),
+          decoration: InputDecoration(border: OutlineInputBorder())),
+      suggestionsCallback: (pattern) async {
+        return await getSuggestions(pattern);
       },
-      // Specify a custom transition to be used for
-      // animating between opened and closed stated.
-      transition: CircularFloatingSearchBarTransition(),
-      actions: [
-        FloatingSearchBarAction(
-          showIfOpened: false,
-          child: CircularButton(
-            icon: const Icon(Icons.place),
-            onPressed: () {},
-          ),
-        ),
-        FloatingSearchBarAction.searchToClear(
-          showIfClosed: false,
-        ),
-      ],
-      builder: (context, transition) {
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Material(
-            color: Colors.white,
-            elevation: 4.0,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: Colors.accents.map((color) {
-                return Container(height: 112, color: color);
-              }).toList(),
-            ),
-          ),
+      itemBuilder: (context, suggestion) {
+        return ListTile(
+          leading: Icon(Icons.shopping_cart),
+          title: Text(suggestion['name']),
+          subtitle: Text('\$${suggestion['price']}'),
         );
+      },
+      onSuggestionSelected: (suggestion) {
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: null,
+          //  builder: (context) => ProductPage(product: suggestion)
+        ));
       },
     );
   }
@@ -339,28 +282,24 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   Drawer buildDrawer() {
     return Drawer(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: const <Widget>[
-                DrawerHeader(
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                    ),
-                  child: Text(
-                    'Drawer',
-                    style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    ),
-                  ),
-                ),
-                ListTile(
-                  leading: Icon(Icons.account_circle),
-                  title: Text("Logga in")
-                )
-              ],
-            )
-          );
+        child: ListView(
+      padding: EdgeInsets.zero,
+      children: const <Widget>[
+        DrawerHeader(
+          decoration: BoxDecoration(
+            color: Colors.blue,
+          ),
+          child: Text(
+            'Drawer',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+            ),
+          ),
+        ),
+        ListTile(leading: Icon(Icons.account_circle), title: Text("Logga in"))
+      ],
+    ));
   }
 
   Column buildFloatingActionButtonsColumn() {
@@ -418,11 +357,49 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         },
         onCameraMove: clusterManager.onCameraMove,
         onCameraIdle: clusterManager.updateMap,
-        cameraTargetBounds: new CameraTargetBounds(
-          new LatLngBounds(
-            northeast: LatLng(59.491684, 18.355865),
-            southwest: LatLng(59.220681, 17.837629),
-        ))
-    );
+        cameraTargetBounds: new CameraTargetBounds(new LatLngBounds(
+          northeast: LatLng(59.491684, 18.355865),
+          southwest: LatLng(59.220681, 17.837629),
+        )));
+  }
+
+  getSuggestions(String pattern) {}
+
+  showClickedParkSheet(p) {
+    showModalBottomSheet<void>(
+        context: context,
+        builder: (BuildContext context) {
+          return Container(
+              height: 400,
+              color: Colors.blue,
+              child: Column(
+                children: <Widget>[
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.max,
+                    children: <Widget>[Text(p.name), buildParkInfo(p)],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      ElevatedButton(
+                          onPressed: () => print("Not implemented"),
+                          child: Text("Favorit",
+                              style: TextStyle(color: Colors.black)),
+                          style: ElevatedButton.styleFrom(
+                              primary: Colors.yellowAccent,
+                              textStyle: TextStyle(color: Colors.black))),
+                      ElevatedButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text("Stäng",
+                              style: TextStyle(color: Colors.black)),
+                          style: ElevatedButton.styleFrom(
+                              primary: Colors.lightGreen))
+                    ],
+                  ),
+                ],
+              ));
+        });
   }
 }
