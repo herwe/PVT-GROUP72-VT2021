@@ -48,7 +48,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   List<ClusterItem<Park>> parks;
 
   _initParks() {
-    print("init");
     parks = [];
 
     //All parks are loaded and stored in ClusterItems.
@@ -273,9 +272,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   }
 
   @override
-  Widget build(BuildContext context) => MaterialApp(home: buildViews()
-      //mainAxisAlignment: MainAxisAlignment.spaceBetween
-      );
+  Widget build(BuildContext context) => MaterialApp(home: buildViews());
 
   DefaultTabController buildViews() {
     return DefaultTabController(
@@ -285,19 +282,25 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             appBar: buildAppBar(),
             drawer: buildDrawer(),
             body:
-                TabBarView(physics: NeverScrollableScrollPhysics(), children: [
-              Stack(
-                fit: StackFit.expand,
-                children: [
-                  buildGoogleMap(),
-                  buildFloatingSearchBar(),
-                ],
-              ),
-              Stack(
-                fit: StackFit.expand,
-                children: [
-                  buildFloatingSearchBar(),
-                ],
+                TabBarView(
+                    physics: NeverScrollableScrollPhysics(),
+                    children: [
+                      Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          buildGoogleMap(),
+                          buildFloatingSearchBar(),
+                      ],
+                      ),
+                      Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Column(
+                            children: [
+
+                            ],
+                          )
+                        ],
               )
             ]),
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -330,15 +333,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
-        /*** THIS BUTTON IS PROBABLY NOT NEEDED. ***\
-            FloatingActionButton(
-            onPressed: () {
-            print("Not implemented");
-            },
-            child: Icon(Icons.search),
-            ),
-
-         */
         FloatingActionButton(
           onPressed: _showFilters,
           child: Icon(Icons.filter_alt_outlined),
@@ -360,7 +354,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             icon: Icon(Icons.map),
           ),
           Tab(
-            icon: Icon(Icons.filter_alt_outlined),
+            icon: Icon(Icons.list),
           ),
         ],
       ),
