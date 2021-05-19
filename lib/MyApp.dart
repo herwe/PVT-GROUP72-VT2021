@@ -297,7 +297,25 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                         children: [
                           Column(
                             children: [
-                              buildListView()
+                              FutureBuilder(
+                                builder: (context, AsyncSnapshot snapshot) {
+                                  if (sl.isEmpty) {
+                                    return Center(child: CircularProgressIndicator());
+                                  }
+                                  else {
+                                    return Container(
+                                      child: ListView.builder(
+                                        scrollDirection: Axis.vertical,
+                                        shrinkWrap: true,
+                                        itemCount: 3,
+                                        itemBuilder: (BuildContext context, int index) {
+                                          return Text(parks[index].item.name);
+                                        },
+                                      ),
+                                    );
+                                  }
+                                },
+                              )
                             ],
                           )
                         ],
@@ -306,24 +324,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
             floatingActionButton: buildFloatingActionButtonsColumn()));
   }
-
   List<String> sl = ["a", "b", "c", "d"];
-  buildListView() {
-    return Expanded(
-      child: ListView.builder(
-          itemCount: sl.length,
-          itemBuilder: (BuildContext context, int i) {
-            return new Container(
-              padding: const EdgeInsets.only(bottom: 8.0),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black)
-              ),
-              child: Text(sl[i]),
-            );
-          }
-      )
-    );
-  }
 
   Drawer buildDrawer() {
     return Drawer(
