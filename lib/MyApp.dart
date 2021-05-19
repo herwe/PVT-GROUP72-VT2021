@@ -114,6 +114,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           position: cluster.location,
           onTap: () {
             if (cluster.count == 1) {
+              // Does nothing, since there is no way to validate a marker...
               Park p = cluster.items.first as Park;
               CheckPalsundsparkenMarkerName.validate(p.name);
               CheckPalsundsparkenMarkerCoordinateLong.validate(p.long);
