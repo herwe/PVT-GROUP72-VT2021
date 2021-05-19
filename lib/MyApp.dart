@@ -68,6 +68,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
     _initParks();
     clusterManager = _initClusterManager();
+
+
   }
 
   //Cluster implementation stolen from: https://pub.dev/packages/google_maps_cluster_manager
@@ -299,21 +301,24 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                             children: [
                               FutureBuilder(
                                 builder: (context, AsyncSnapshot snapshot) {
-                                  if (sl.isEmpty) {
-                                    return Center(child: CircularProgressIndicator());
-                                  }
-                                  else {
-                                    return Container(
+                                  return Container(
+                                    child: Expanded(
                                       child: ListView.builder(
                                         scrollDirection: Axis.vertical,
                                         shrinkWrap: true,
-                                        itemCount: 3,
+                                        itemCount: 50,
                                         itemBuilder: (BuildContext context, int index) {
-                                          return Text(parks[index].item.name);
+                                          return Container(
+                                            child: Text(parks[index].item.name),
+                                            padding: const EdgeInsets.only(bottom: 8.0),
+                                            decoration: BoxDecoration(
+                                                border: Border.all(color: Colors.black)
+                                            ),
+                                          );
                                         },
                                       ),
-                                    );
-                                  }
+                                    ),
+                                  );
                                 },
                               )
                             ],
