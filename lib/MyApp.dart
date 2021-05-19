@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -114,6 +115,10 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           onTap: () {
             if (cluster.count == 1) {
               Park p = cluster.items.first as Park;
+              CheckPalsundsparkenMarkerName.validate(p.name);
+              CheckPalsundsparkenMarkerCoordinateLong.validate(p.long);
+              CheckPalsundsparkenMarkerCoordinateLat.validate(p.lat);
+              CheckPalsundsparkenQualities.validate(p.parkQualities);
               showClickedParkSheet(p);
             }
           },
@@ -431,5 +436,31 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   void showParksThatMatchQuery(suggestions) {
     //todo show some parks
+  }
+}
+
+class CheckPalsundsparkenMarkerName {
+  static String validate(String name) {
+    return (name == "Pålsundsparken") ? name : null;
+  }
+}
+
+class CheckPalsundsparkenMarkerCoordinateLong {
+  static double validate(double long) {
+    return (long == 18.041730036953794) ? long : 0;
+  }
+}
+
+
+class CheckPalsundsparkenMarkerCoordinateLat {
+  static double validate(double lat) {
+    return (lat == 59.32055576347118) ? lat : 0;
+  }
+}
+
+class CheckPalsundsparkenQualities {
+  static List validate(List parkQualities) {
+    final List PALSUNDSPARKEN_QUALITIES = [Qualities.green, Qualities.parkplay, Qualities.view, Qualities.water];
+    return(listEquals(parkQualities, PALSUNDSPARKEN_QUALITIES)) ? parkQualities : null;
   }
 }
