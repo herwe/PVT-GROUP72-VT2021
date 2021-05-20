@@ -55,10 +55,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     //All parks are loaded and stored in ClusterItems.
     getParks().then((loadedParks) {
       for (Park p in loadedParks) {
-        if (!parks.containsKey(p.name)) {
-          parks.putIfAbsent(
-              p.name, () => ClusterItem(LatLng(p.lat, p.long), item: p));
-        }
+        parks.putIfAbsent(
+            p.name, () => ClusterItem(LatLng(p.lat, p.long), item: p));
       }
     });
   }
@@ -259,7 +257,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             elevation: 4.0,
             child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: getSuggestions("van")
+                children: getSuggestions("")
                     .map((park) => Container(
                           height: 112,
                           child: Text(park.item.name),
