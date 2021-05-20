@@ -55,7 +55,11 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       for (Park p in loadedParks) {
         parks.add(ClusterItem(LatLng(p.lat, p.long), item: p));
       }
+      sortParks();
     });
+  }
+
+  sortParks() {
     parks.sort((a, b) => a.item.name.compareTo(b.item.name));
   }
 
@@ -153,18 +157,19 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     return BitmapDescriptor.fromBytes(data.buffer.asUint8List());
   }
 
-  List<ClusterItem<Park>> discardedParks =
-      []; //Saves all the parks that have been discarded by the filter.
+  List<ClusterItem<Park>> discardedParks = []; //Saves all the parks that have been discarded by the filter.
   void _updateMarkers(Set<Marker> markers) {
     print('Updated ${markers.length} markers');
+    print("Only Favorites?: " + onlyFavorites.toString());
+    print("Amount of Favorites: " + favoriteParks.length.toString());
     setState(() {
       //If no filters are selected, for every quality remove the pars that do not have it.
-      if (!noneSelected()) {
-        parks.removeWhere((element) => removePark(element));
-      }
+      parks.removeWhere((element) => removePark(element));
 
       //Adds the previously discarded parks that now conform to the filter.
       discardedParks.removeWhere((element) => reAddPark(element));
+
+      sortParks();
 
       //Updates the markers.
       this.markers = markers;
@@ -172,22 +177,34 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   }
 
   bool removePark(ClusterItem<Park> element) {
-    for (Qualities q in filterMap.keys) {
-      if (filterMap[q] && !element.item.parkQualities.contains(q)) {
-        discardedParks
-            .add(element); //To avoid concurrent modification exception.
-        return true;
+    if (onlyFavorites && !favoriteParks.contains(element.item)) {
+      discardedParks.add(element);
+      return true;
+    }
+
+    if (!noneSelected()) {
+      for (Qualities q in filterMap.keys) {
+        if (filterMap[q] && !element.item.parkQualities.contains(q)) {
+          discardedParks.add(element); //To avoid concurrent modification exception.
+          return true;
+        }
       }
     }
+
     return false;
   }
 
   bool reAddPark(ClusterItem<Park> element) {
+    if (onlyFavorites && !favoriteParks.contains(element.item)) {
+      return false;
+    }
+
     for (Qualities q in filterMap.keys) {
       if (filterMap[q] && !(element.item).parkQualities.contains(q)) {
         return false;
       }
     }
+
     parks.add(element);
     return true;
   }
@@ -299,7 +316,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                           Column(
                             children: [
                               buildListViewTop(),
-                              buildListView()
+                              buildListView(),
+                              buildListViewBottom()
                             ],
                           )
                         ],
@@ -340,7 +358,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     );
   }
 
-  List<ClusterItem> favouriteParks = [];
+  List<Park> favoriteParks = [];
   buildListView() {
     return FutureBuilder(
       builder: (context, AsyncSnapshot snapshot) {
@@ -362,18 +380,18 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(parks[index].item.name),
-                            IconButton(onPressed: () {
-                              print("Love you!");
-                              setState(() {
-                                if (!favouriteParks.contains(parks[index])) {
-                                  favouriteParks.add(parks[index]);
-                                }
-                                else {
-                                  favouriteParks.remove(parks[index]);
-                                }
-                              });
+                            IconButton(
+                                onPressed: () {
+                                setState(() {
+                                  if (!favoriteParks.contains(parks[index].item)) {
+                                    favoriteParks.add(parks[index].item);
+                                  }
+                                  else {
+                                    favoriteParks.remove(parks[index].item);
+                                  }
+                                });
                               },
-                                icon: favouriteParks.contains(parks[index]) ? Icon(Icons.favorite, color: Colors.red) : Icon(Icons.favorite_border, color: Colors.red))
+                                  icon: favoriteParks.contains(parks[index].item) ? Icon(Icons.favorite, color: Colors.red) : Icon(Icons.favorite_border, color: Colors.red))
                           ],
                         ),
                         buildParkInfo(parks[index].item)
@@ -385,6 +403,27 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           ),
         );
       },
+    );
+  }
+
+  bool onlyFavorites = false;
+  buildListViewBottom() {
+    return Container(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Text("Visa Endast favoriter:", style: TextStyle(fontWeight: FontWeight.bold)),
+          Checkbox(
+            value: onlyFavorites,
+            onChanged: (value) {
+              setState(() {
+                onlyFavorites = !onlyFavorites;
+                _updateMarkers(markers);
+              });
+            },
+          )
+        ],
+      ),
     );
   }
 
@@ -478,25 +517,22 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                   Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     mainAxisSize: MainAxisSize.max,
-                    children: <Widget>[Text(p.name), buildParkInfo(p)],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      ElevatedButton(
-                          onPressed: () => print("Not implemented"),
-                          child: Text("Favorit",
-                              style: TextStyle(color: Colors.black)),
-                          style: ElevatedButton.styleFrom(
-                              primary: Colors.yellowAccent,
-                              textStyle: TextStyle(color: Colors.black))),
-                      ElevatedButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text("Stäng",
-                              style: TextStyle(color: Colors.black)),
-                          style: ElevatedButton.styleFrom(
-                              primary: Colors.lightGreen))
+                    children: [
+                      Text(p.name),
+                      buildParkInfo(p),
+                      IconButton(
+                          onPressed: () {
+                            setState(() {
+                              if (!favoriteParks.contains(p)) {
+                                favoriteParks.add(p);
+                              }
+                              else {
+                                favoriteParks.remove(p);
+                              }
+                              print(favoriteParks.contains(p));
+                            });
+                          },
+                          icon: favoriteParks.contains(p) ? Icon(Icons.favorite, color: Colors.red) : Icon(Icons.favorite_border, color: Colors.red))
                     ],
                   ),
                 ],
