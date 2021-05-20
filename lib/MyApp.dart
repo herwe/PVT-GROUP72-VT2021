@@ -260,9 +260,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: getSuggestions()
-                    .map((park) => Container(
-                          height: 112,
-                          child: Text(park.item.name),
+                    .map((park) => GestureDetector(
+                          onTap: findAndGoToMarker(park),
+                          child: Container(
+                            height: 112,
+                            child: Text(park.item.name),
+                          ),
                         ))
                     .toList()),
           ),
@@ -445,5 +448,15 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         parkSuggestions.add(parks[name]);
       }
     }
+  }
+
+  findAndGoToMarker(ClusterItem<Park> park) {
+    mapController.animateCamera(CameraUpdate.newCameraPosition(
+      CameraPosition(
+        bearing: 0,
+        target: LatLng(park.location.latitude, park.location.longitude),
+        zoom: 17.0,
+      ),
+    ));
   }
 }
