@@ -263,15 +263,17 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                     .map((park) => GestureDetector(
                           onTap: () {
                             findAndGoToMarker(park);
+
+                            FocusScopeNode currentFocus = FocusScope.of(context);
+
+                            if (!currentFocus.hasPrimaryFocus) {
+                              currentFocus.unfocus();
+                            }
+
+                            String snackBarText = 'Kameran fokuserar nu på: ' + park.item.name.toString();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: const Text('Awesome Snackbar!'),
-                                action: SnackBarAction(
-                                  label: 'Action',
-                                  onPressed: () {
-                                    // Code to execute.
-                                  },
-                                ),
+                                content: Text(snackBarText),
                               ),
                             );
                           },
