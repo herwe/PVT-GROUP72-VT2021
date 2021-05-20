@@ -263,6 +263,17 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                     .map((park) => GestureDetector(
                           onTap: () {
                             findAndGoToMarker(park);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text('Awesome Snackbar!'),
+                                action: SnackBarAction(
+                                  label: 'Action',
+                                  onPressed: () {
+                                    // Code to execute.
+                                  },
+                                ),
+                              ),
+                            );
                           },
                           child: Container(
                             //height: 112,
