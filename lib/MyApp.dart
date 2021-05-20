@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:ui' as ui;
 
 import 'package:flutter/cupertino.dart';
@@ -45,19 +46,21 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   Set<Marker> markers = Set();
 
-  List<ClusterItem<Park>> parks;
+  HashMap<String, ClusterItem<Park>> parks;
 
   _initParks() {
     print("init");
-    parks = [];
+    parks = new HashMap();
 
     //All parks are loaded and stored in ClusterItems.
     getParks().then((loadedParks) {
       for (Park p in loadedParks) {
-        parks.add(ClusterItem(LatLng(p.lat, p.long), item: p));
+        if (!parks.containsKey(p.name)) {
+          parks.putIfAbsent(
+              p.name, () => ClusterItem(LatLng(p.lat, p.long), item: p));
+        }
       }
     });
-    parks.sort((a, b) => a.item.name.compareTo(b.item.name));
   }
 
   initState() {
@@ -73,7 +76,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   //Cluster implementation stolen from: https://pub.dev/packages/google_maps_cluster_manager
   ClusterManager _initClusterManager() {
-    return ClusterManager<Park>(parks, _updateMarkers,
+    return ClusterManager<Park>(parks.values, _updateMarkers,
         initialZoom: dsv.zoom,
         stopClusteringZoom: 14.0,
         markerBuilder:
@@ -160,7 +163,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     setState(() {
       //If no filters are selected, for every quality remove the pars that do not have it.
       if (!noneSelected()) {
-        parks.removeWhere((element) => removePark(element));
+        parks.removeWhere((key, value) => removePark(value));
       }
 
       //Adds the previously discarded parks that now conform to the filter.
@@ -188,7 +191,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         return false;
       }
     }
-    parks.add(element);
+    parks.putIfAbsent(element.item.name, () => element);
     return true;
   }
 
@@ -257,9 +260,16 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             elevation: 4.0,
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: Colors.accents.map((color) {
+              children: parks.keys
+                  .map((name) => Container(
+                        height: 112,
+                        child: Text(name),
+                      ))
+                  .toList()
+              /*Colors.accents.map((color) {
                 return Container(height: 112, color: color);
-              }).toList(),
+              }).toList()*/
+              ,
             ),
           ),
         );
