@@ -231,8 +231,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       width: isPortrait ? 600 : 500,
       debounceDelay: const Duration(milliseconds: 500),
       onQueryChanged: (query) {
-        showParksThatMatchQuery(getSuggestions(query));
-
         //change what is shown as suggestions
         // Call your model, bloc, controller here.
       },
@@ -259,18 +257,13 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             color: Colors.white,
             elevation: 4.0,
             child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: parks.keys
-                  .map((name) => Container(
-                        height: 112,
-                        child: Text(name),
-                      ))
-                  .toList()
-              /*Colors.accents.map((color) {
-                return Container(height: 112, color: color);
-              }).toList()*/
-              ,
-            ),
+                mainAxisSize: MainAxisSize.min,
+                children: getSuggestions("van")
+                    .map((park) => Container(
+                          height: 112,
+                          child: Text(park.item.name),
+                        ))
+                    .toList()),
           ),
         );
       },
@@ -397,8 +390,15 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         )));
   }
 
-  getSuggestions(String pattern) {
-    return new List<ClusterItem<Park>>();
+  List<ClusterItem<Park>> getSuggestions(String pattern) {
+    List<ClusterItem<Park>> tmp = [];
+    for (String name in parks.keys) {
+      if (name.startsWith(pattern)) {
+        tmp.add(parks[name]);
+      }
+    }
+
+    return tmp;
   }
 
   showClickedParkSheet(p) {
@@ -437,9 +437,5 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                 ],
               ));
         });
-  }
-
-  void showParksThatMatchQuery(suggestions) {
-    //todo show some parks
   }
 }
