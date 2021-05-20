@@ -68,11 +68,9 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
     _initParks();
     clusterManager = _initClusterManager();
-
-
   }
 
-  //Cluster implementation stolen from: https://pub.dev/packages/google_maps_cluster_manager
+  //Cluster implementation "stolen" from: https://pub.dev/packages/google_maps_cluster_manager
   ClusterManager _initClusterManager() {
     return ClusterManager<Park>(parks, _updateMarkers,
         initialZoom: dsv.zoom,
@@ -81,6 +79,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             markerBuilder); //Change stopClusteringZoom at your own risk
   }
 
+  //TODO: Koden ser konstig ut, vad är meningen med Qualities.grill?
   buildParkInfo(Park p) {
     return Wrap(
       spacing: 8.0, // gap between adjacent chips
@@ -299,28 +298,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                         children: [
                           Column(
                             children: [
-                              FutureBuilder(
-                                builder: (context, AsyncSnapshot snapshot) {
-                                  return Container(
-                                    child: Expanded(
-                                      child: ListView.builder(
-                                        scrollDirection: Axis.vertical,
-                                        shrinkWrap: true,
-                                        itemCount: 50,
-                                        itemBuilder: (BuildContext context, int index) {
-                                          return Container(
-                                            child: Text(parks[index].item.name),
-                                            padding: const EdgeInsets.only(bottom: 8.0),
-                                            decoration: BoxDecoration(
-                                                border: Border.all(color: Colors.black)
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  );
-                                },
-                              )
+                              buildListView()
                             ],
                           )
                         ],
@@ -329,7 +307,36 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
             floatingActionButton: buildFloatingActionButtonsColumn()));
   }
-  List<String> sl = ["a", "b", "c", "d"];
+
+  buildListView() {
+    return FutureBuilder(
+      builder: (context, AsyncSnapshot snapshot) {
+        return Container(
+          child: Expanded(
+            child: ListView.builder(
+              scrollDirection: Axis.vertical,
+              shrinkWrap: true,
+              itemCount: parks.length,
+              itemBuilder: (BuildContext context, int index) {
+                return Container(
+                    padding: const EdgeInsets.all(10.0),
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black)
+                    ),
+                    child: Column(
+                      children: [
+                        Text(parks[index].item.name),
+                        buildParkInfo(parks[index].item)
+                      ],
+                    )
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   Drawer buildDrawer() {
     return Drawer(
