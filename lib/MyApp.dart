@@ -298,6 +298,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                         children: [
                           Column(
                             children: [
+                              buildListViewTop(),
                               buildListView()
                             ],
                           )
@@ -308,6 +309,38 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             floatingActionButton: buildFloatingActionButtonsColumn()));
   }
 
+  String dropDownValue = "NOT IMPLEMENTED";
+  buildListViewTop() {
+    return Container(
+      padding: const EdgeInsets.all(10.0),
+      child: Column(
+        children: [
+          Text("Alla parker och deras kvaliteter", style: TextStyle(fontWeight: FontWeight.bold)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Visar: TMP"),
+              DropdownButton<String>(
+                items: <String>[dropDownValue].map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              value: dropDownValue,
+              onChanged: (String newValue) {
+                setState(() {
+                  dropDownValue = newValue;
+                });
+              },)
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  List<ClusterItem> favouriteParks = [];
   buildListView() {
     return FutureBuilder(
       builder: (context, AsyncSnapshot snapshot) {
@@ -325,7 +358,24 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                     ),
                     child: Column(
                       children: [
-                        Text(parks[index].item.name),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(parks[index].item.name),
+                            IconButton(onPressed: () {
+                              print("Love you!");
+                              setState(() {
+                                if (!favouriteParks.contains(parks[index])) {
+                                  favouriteParks.add(parks[index]);
+                                }
+                                else {
+                                  favouriteParks.remove(parks[index]);
+                                }
+                              });
+                              },
+                                icon: favouriteParks.contains(parks[index]) ? Icon(Icons.favorite, color: Colors.red) : Icon(Icons.favorite_border, color: Colors.red))
+                          ],
+                        ),
                         buildParkInfo(parks[index].item)
                       ],
                     )
