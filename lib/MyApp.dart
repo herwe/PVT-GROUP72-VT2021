@@ -230,7 +230,9 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       debounceDelay: const Duration(milliseconds: 500),
       onQueryChanged: (query) {
         //change what is shown as suggestions
-
+        setState(() {
+          setSuggestions(query);
+        });
         // Call your model, bloc, controller here.
       },
 
@@ -257,7 +259,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             elevation: 4.0,
             child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: getSuggestions("")
+                children: getSuggestions()
                     .map((park) => Container(
                           height: 112,
                           child: Text(park.item.name),
@@ -389,15 +391,10 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         )));
   }
 
-  List<ClusterItem<Park>> getSuggestions(String pattern) {
-    List<ClusterItem<Park>> tmp = [];
-    for (String name in parks.keys) {
-      if (name.toLowerCase().startsWith(pattern.toLowerCase())) {
-        tmp.add(parks[name]);
-      }
-    }
+  List<ClusterItem<Park>> parkSuggestions;
 
-    return tmp;
+  List<ClusterItem<Park>> getSuggestions(String pattern) {
+    return parkSuggestions;
   }
 
   showClickedParkSheet(p) {
@@ -436,5 +433,13 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                 ],
               ));
         });
+  }
+
+  void setSuggestions(String query) {
+    for (String name in parks.keys) {
+      if (name.toLowerCase().startsWith(query.toLowerCase())) {
+        parkSuggestions.add(parks[name]);
+      }
+    }
   }
 }
