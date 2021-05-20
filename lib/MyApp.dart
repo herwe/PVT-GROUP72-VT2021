@@ -437,6 +437,9 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   void setSuggestions(String query) {
     parkSuggestions = [];
+    if (query.isEmpty) {
+      return;
+    }
     for (String name in parks.keys) {
       if (name.toLowerCase().startsWith(query.toLowerCase())) {
         parkSuggestions.add(parks[name]);
