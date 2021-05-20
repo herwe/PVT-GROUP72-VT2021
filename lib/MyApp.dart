@@ -393,7 +393,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   List<ClusterItem<Park>> parkSuggestions;
 
-  List<ClusterItem<Park>> getSuggestions(String pattern) {
+  List<ClusterItem<Park>> getSuggestions() {
     return parkSuggestions;
   }
 
