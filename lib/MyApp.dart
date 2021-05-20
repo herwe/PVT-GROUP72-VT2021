@@ -261,10 +261,19 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                 mainAxisSize: MainAxisSize.min,
                 children: getSuggestions()
                     .map((park) => GestureDetector(
-                          onTap: findAndGoToMarker(park),
+                          onTap: () {
+                            findAndGoToMarker(park);
+                          },
                           child: Container(
-                            height: 112,
-                            child: Text(park.item.name),
+                            //height: 112,
+                            width: 420,
+                            child: Padding(
+                              child: Text(park.item.name, style: TextStyle(fontSize: 30)),
+                              padding: EdgeInsets.fromLTRB(50, 25, 50, 25),
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.black)
+                            ),
                           ),
                         ))
                     .toList()),
