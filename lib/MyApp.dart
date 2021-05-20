@@ -391,7 +391,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         )));
   }
 
-  List<ClusterItem<Park>> parkSuggestions;
+  List<ClusterItem<Park>> parkSuggestions = [];
 
   List<ClusterItem<Park>> getSuggestions() {
     return parkSuggestions;
@@ -436,6 +436,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   }
 
   void setSuggestions(String query) {
+    parkSuggestions = [];
     for (String name in parks.keys) {
       if (name.toLowerCase().startsWith(query.toLowerCase())) {
         parkSuggestions.add(parks[name]);
