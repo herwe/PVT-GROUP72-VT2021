@@ -232,6 +232,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       debounceDelay: const Duration(milliseconds: 500),
       onQueryChanged: (query) {
         //change what is shown as suggestions
+
         // Call your model, bloc, controller here.
       },
 
@@ -393,7 +394,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   List<ClusterItem<Park>> getSuggestions(String pattern) {
     List<ClusterItem<Park>> tmp = [];
     for (String name in parks.keys) {
-      if (name.startsWith(pattern)) {
+      if (name.toLowerCase().startsWith(pattern.toLowerCase())) {
         tmp.add(parks[name]);
       }
     }
