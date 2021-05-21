@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/cupertino.dart';
@@ -52,6 +53,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   var toiletMarkers;
 
+  var smallIconSize = 50;
+
   _initParks() {
     print("init");
     parks = new HashMap();
@@ -71,7 +74,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     rootBundle.loadString('map_style.txt').then((string) {
       mapStyling = string;
     });
-
+    loadIcons();
     _initParks();
     clusterManager = _initClusterManager();
     _initToilets();
@@ -531,17 +534,41 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   void _initToilets() {
     getToilets().then((toilets) {
       for (Toilet t in toilets) {
-        addToiletMarker(t.id.toString(), t.lat, t.long, "wc");
+        String info = "Ditsatt: ${t.operational}\nAnpassad: ${t.adapted}";
+        addToiletMarker(t.id.toString(), t.lat, t.long, "wc", info, toiletIcon);
       }
     });
   }
 
-  void addToiletMarker(String id, double lat, double long, String type) {
+  void addToiletMarker(String id, double lat, double long, String type,
+      String info, Uint8List icon) {
     MarkerId markerId = MarkerId(id + type);
-    final Marker marker =
-        Marker(markerId: markerId, position: LatLng(lat, long));
+    final Marker marker = Marker(
+        markerId: markerId,
+        position: LatLng(lat, long),
+        icon: BitmapDescriptor.fromBytes(icon),
+        onTap: () {
+          print("marker tapped: ${markerId}");
+        });
+
     setState(() {
       toiletMarkers.add(marker);
     });
+  }
+
+  Uint8List toiletIcon;
+
+  loadIcons() async {
+    toiletIcon = await getBytesFromAsset('assets/wc.png', smallIconSize);
+  }
+
+  Future<Uint8List> getBytesFromAsset(String path, int width) async {
+    ByteData data = await rootBundle.load(path);
+    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(),
+        targetWidth: width);
+    ui.FrameInfo fi = await codec.getNextFrame();
+    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))
+        .buffer
+        .asUint8List();
   }
 }
