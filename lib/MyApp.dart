@@ -56,12 +56,29 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       for (Park p in loadedParks) {
         parks.add(ClusterItem(LatLng(p.lat, p.long), item: p));
       }
-      sortParks();
+      sortParksAlphabetically();
     });
   }
 
-  sortParks() {
+  sortParksAlphabetically() {
     parks.sort((a, b) => a.item.name.compareTo(b.item.name));
+  }
+
+  sortParksByDistance() {
+    setParkDistances();
+    int n = 0;
+    int d = 0;
+    for (int i = 0; i < parks.length; i++) {
+      if (parks[i].item.distance == null) {
+        n++;
+      }
+      else {
+        d++;
+      }
+    }
+    print("D: " + d.toString() + "N: " + n.toString());
+
+    parks.sort((a, b) => a.item.distance.compareTo(b.item.distance));
   }
 
   initState() {
@@ -172,7 +189,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       //Adds the previously discarded parks that now conform to the filter.
       discardedParks.removeWhere((element) => reAddPark(element));
 
-      sortParks();
+      sortParksAlphabetically();
 
       //Updates the markers.
       this.markers = markers;
@@ -357,10 +374,13 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                   dropDownValue = newValue;
 
                   if (dropDownValue == "A - Ö") {
-                    sortParks();
+                    sortParksAlphabetically();
+                  }
+                  else if (dropDownValue == "Ö - A") {
+                    print("Not implemented");
                   }
                   else {
-                    print("Not implemented");
+                    sortParksByDistance();
                   }
                 });
               },)
@@ -369,17 +389,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         ],
       ),
     );
-  }
-
-  //https://stackoverflow.com/questions/54138750/total-distance-calculation-from-latlng-list
-  //Maybe change to this instead?: https://pub.dev/packages/geolocator
-  double calculateCoordinateDistance(LatLng origin, LatLng destination) {
-    var p = 0.017453292519943295;
-    var c = cos;
-    var a = 0.5 - c((destination.latitude - origin.latitude) * p)/2
-            + c(origin.latitude * p) * c(destination.latitude * p)
-            * (1 - c((destination.longitude - origin.longitude) * p))/2;
-    return 12742 * asin(sqrt(a));
   }
 
   List<Park> favoriteParks = [];
@@ -418,7 +427,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                                       });
                                     },
                                     icon: favoriteParks.contains(parks[index].item) ? Icon(Icons.favorite, color: Colors.red) : Icon(Icons.favorite_border, color: Colors.red)),
-                                Text("Avstånd: " + calculateCoordinateDistance(LatLng(currentLocation.latitude, currentLocation.longitude), parks[index].location).toStringAsFixed(0) + " km")
+                                Text("Avstånd: " + parks[index].item.distance.toStringAsFixed(0) + " km")
                               ],
                             )
                           ],
@@ -433,6 +442,23 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         );
       },
     );
+  }
+
+  //https://stackoverflow.com/questions/54138750/total-distance-calculation-from-latlng-list
+  //Maybe change to this instead?: https://pub.dev/packages/geolocator
+  double calculateCoordinateDistance(LatLng destination) {
+    var p = 0.017453292519943295;
+    var c = cos;
+    var a = 0.5 - c((destination.latitude - currentLocation.latitude) * p)/2
+        + c(currentLocation.latitude * p) * c(destination.latitude * p)
+            * (1 - c((destination.longitude - currentLocation.longitude) * p))/2;
+    return 12742 * asin(sqrt(a));
+  }
+
+  setParkDistances() {
+    for (ClusterItem<Park> ci in parks) {
+      ci.item.distance = calculateCoordinateDistance(ci.location);
+    }
   }
 
   bool onlyFavorites = false;
@@ -477,7 +503,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       ],
     ));
   }
-
 
   Column buildFloatingActionButtonsColumn() {
     return Column(

@@ -6,6 +6,7 @@ import 'dart:convert';
 class Park extends Location {
   String name;
   List<Qualities> parkQualities = [];
+  double distance = 0;
 
   //Park({@required id, @required lat, @required long, @required this.name}) : super.constructor(id, lat, long);
 
@@ -21,6 +22,7 @@ class Park extends Location {
     return park;
   }
 
+  //TODO: map?
   void fillQualities(Map<String, dynamic> json) {
     if (json['green']) {
       parkQualities.add(Qualities.green);
