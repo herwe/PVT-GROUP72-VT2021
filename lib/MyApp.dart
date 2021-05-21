@@ -559,7 +559,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   Uint8List toiletIcon;
 
   loadIcons() async {
-    toiletIcon = await getBytesFromCanvas(200, 100);
+    toiletIcon = await getBytesFromCanvas(100, 100);
     // await getBytesFromAsset('assets/wc.png', smallIconSize);
   }
 
