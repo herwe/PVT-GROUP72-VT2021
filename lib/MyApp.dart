@@ -559,7 +559,37 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   Uint8List toiletIcon;
 
   loadIcons() async {
-    toiletIcon = await getBytesFromAsset('assets/wc.png', smallIconSize);
+    toiletIcon = await getBytesFromCanvas(200, 100);
+    // await getBytesFromAsset('assets/wc.png', smallIconSize);
+  }
+
+  Future<Uint8List> getBytesFromCanvas(int width, int height) async {
+    final ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
+    final Canvas canvas = Canvas(pictureRecorder);
+    final Paint paint = Paint()..color = Colors.blue;
+    final Radius radius = Radius.circular(20.0);
+    canvas.drawRRect(
+        RRect.fromRectAndCorners(
+          Rect.fromLTWH(0.0, 0.0, width.toDouble(), height.toDouble()),
+          topLeft: radius,
+          topRight: radius,
+          bottomLeft: radius,
+          bottomRight: radius,
+        ),
+        paint);
+    TextPainter painter = TextPainter(textDirection: TextDirection.ltr);
+    painter.text = TextSpan(
+      text: 'WC',
+      style: TextStyle(fontSize: 25.0, color: Colors.white),
+    );
+    painter.layout();
+    painter.paint(
+        canvas,
+        Offset((width * 0.5) - painter.width * 0.5,
+            (height * 0.5) - painter.height * 0.5));
+    final img = await pictureRecorder.endRecording().toImage(width, height);
+    final data = await img.toByteData(format: ui.ImageByteFormat.png);
+    return data.buffer.asUint8List();
   }
 
   Future<Uint8List> getBytesFromAsset(String path, int width) async {
