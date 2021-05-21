@@ -559,6 +559,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   Uint8List toiletIcon;
 
   loadIcons() async {
+    //todo change the dimensions?
     toiletIcon = await getBytesFromCanvas(100, 100);
     // await getBytesFromAsset('assets/wc.png', smallIconSize);
   }
@@ -578,11 +579,14 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           bottomRight: radius,
         ),
         paint);
-    canvas.drawCircle(Offset(10, 10), 50, Paint()..color = Colors.white);
+
     TextPainter painter = TextPainter(textDirection: TextDirection.ltr);
     painter.text = TextSpan(
       text: 'WC',
-      style: TextStyle(fontSize: 25.0, color: Colors.black),
+      style: TextStyle(
+        fontSize: 25.0,
+        color: Colors.black,
+      ),
     );
     painter.layout();
     painter.paint(
