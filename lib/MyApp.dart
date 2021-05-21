@@ -40,6 +40,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   GoogleMapController mapController;
   String mapStyling;
   ClusterManager clusterManager;
+  var showToilets = false;
 
   // Coordinates for DSV, Kista.
   final CameraPosition dsv = CameraPosition(
@@ -170,7 +171,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
       //Updates the markers.
       this.markers = markers;
-      loadToilets();
+      if (showToilets) loadToilets();
     });
   }
 
@@ -490,6 +491,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   }
 
   void loadToilets() {
+    showToilets = !showToilets;
     getToilets().then((toilets) {
       for (Toilet t in toilets) {
         addMarker(t.id.toString(), t.lat, t.long, "wc");
