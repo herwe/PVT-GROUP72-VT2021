@@ -492,6 +492,10 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   void loadToilets() {
     showToilets = !showToilets;
+    if (showToilets == false) {
+      _updateMarkers(markers);
+      return;
+    }
     getToilets().then((toilets) {
       for (Toilet t in toilets) {
         addMarker(t.id.toString(), t.lat, t.long, "wc");
