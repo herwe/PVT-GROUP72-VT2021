@@ -381,7 +381,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           child: Icon(Icons.location_on),
         ),
         FloatingActionButton(
-          onPressed: loadToilets,
+          onPressed: () => {showToilets = !showToilets},
           child: Icon(Icons.wc_rounded),
         )
       ],
@@ -491,7 +491,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   }
 
   void loadToilets() {
-    showToilets = !showToilets;
     if (showToilets == false) {
       getToilets().then((toilets) {
         for (Toilet t in toilets) {
