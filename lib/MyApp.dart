@@ -10,6 +10,7 @@ import 'package:google_maps_cluster_manager/google_maps_cluster_manager.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
+import 'dart:math' show cos, sqrt, asin;
 
 import 'filterSheet.dart';
 import 'park.dart';
@@ -72,6 +73,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
     _initParks();
     clusterManager = _initClusterManager();
+
+    setCurrentLocation();
   }
 
   //Cluster implementation "stolen" from: https://pub.dev/packages/google_maps_cluster_manager
@@ -213,14 +216,18 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     return !filterMap.values.contains(true);
   }
 
-  void _currentLocation() async {
-    LocationData currentLocation;
+  LocationData currentLocation;
+  void setCurrentLocation() async {
     var location = new Location();
     try {
       currentLocation = await location.getLocation();
     } on Exception {
       currentLocation = null;
     }
+  }
+
+  void _currentLocation() async {
+    setCurrentLocation();
 
     mapController.animateCamera(CameraUpdate.newCameraPosition(
       CameraPosition(
@@ -327,7 +334,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             floatingActionButton: buildFloatingActionButtonsColumn()));
   }
 
-  String dropDownValue = "NOT IMPLEMENTED";
+  String dropDownValue = "A - Ö";
   buildListViewTop() {
     return Container(
       padding: const EdgeInsets.all(10.0),
@@ -335,11 +342,10 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         children: [
           Text("Alla parker och deras kvaliteter", style: TextStyle(fontWeight: FontWeight.bold)),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Text("Visar: TMP"),
               DropdownButton<String>(
-                items: <String>[dropDownValue].map<DropdownMenuItem<String>>((String value) {
+                items: <String>["A - Ö", "Ö - A", "Nära mig"].map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(value),
@@ -349,6 +355,13 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
               onChanged: (String newValue) {
                 setState(() {
                   dropDownValue = newValue;
+
+                  if (dropDownValue == "A - Ö") {
+                    sortParks();
+                  }
+                  else {
+                    print("Not implemented");
+                  }
                 });
               },)
             ],
@@ -356,6 +369,17 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         ],
       ),
     );
+  }
+
+  //https://stackoverflow.com/questions/54138750/total-distance-calculation-from-latlng-list
+  //Maybe change to this instead?: https://pub.dev/packages/geolocator
+  double calculateCoordinateDistance(LatLng origin, LatLng destination) {
+    var p = 0.017453292519943295;
+    var c = cos;
+    var a = 0.5 - c((destination.latitude - origin.latitude) * p)/2
+            + c(origin.latitude * p) * c(destination.latitude * p)
+            * (1 - c((destination.longitude - origin.longitude) * p))/2;
+    return 12742 * asin(sqrt(a));
   }
 
   List<Park> favoriteParks = [];
@@ -380,18 +404,23 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(parks[index].item.name),
-                            IconButton(
-                                onPressed: () {
-                                setState(() {
-                                  if (!favoriteParks.contains(parks[index].item)) {
-                                    favoriteParks.add(parks[index].item);
-                                  }
-                                  else {
-                                    favoriteParks.remove(parks[index].item);
-                                  }
-                                });
-                              },
-                                  icon: favoriteParks.contains(parks[index].item) ? Icon(Icons.favorite, color: Colors.red) : Icon(Icons.favorite_border, color: Colors.red))
+                            Column(
+                              children: [
+                                IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        if (!favoriteParks.contains(parks[index].item)) {
+                                          favoriteParks.add(parks[index].item);
+                                        }
+                                        else {
+                                          favoriteParks.remove(parks[index].item);
+                                        }
+                                      });
+                                    },
+                                    icon: favoriteParks.contains(parks[index].item) ? Icon(Icons.favorite, color: Colors.red) : Icon(Icons.favorite_border, color: Colors.red)),
+                                Text("Avstånd: " + calculateCoordinateDistance(LatLng(currentLocation.latitude, currentLocation.longitude), parks[index].location).toStringAsFixed(0) + " km")
+                              ],
+                            )
                           ],
                         ),
                         buildParkInfo(parks[index].item)
@@ -412,7 +441,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Text("Visa Endast favoriter:", style: TextStyle(fontWeight: FontWeight.bold)),
+          Text("Visa Endast favoriter: ", style: TextStyle(fontWeight: FontWeight.bold)),
           Checkbox(
             value: onlyFavorites,
             onChanged: (value) {
@@ -448,6 +477,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       ],
     ));
   }
+
 
   Column buildFloatingActionButtonsColumn() {
     return Column(
