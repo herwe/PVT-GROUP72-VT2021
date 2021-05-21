@@ -493,14 +493,18 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   void loadToilets() {
     showToilets = !showToilets;
     if (showToilets == false) {
-      _initClusterManager();
-      return;
+      getToilets().then((toilets) {
+        for (Toilet t in toilets) {
+          removeMarker(t.id.toString(), t.lat, t.long, "wc");
+        }
+      });
+    } else {
+      getToilets().then((toilets) {
+        for (Toilet t in toilets) {
+          addMarker(t.id.toString(), t.lat, t.long, "wc");
+        }
+      });
     }
-    getToilets().then((toilets) {
-      for (Toilet t in toilets) {
-        addMarker(t.id.toString(), t.lat, t.long, "wc");
-      }
-    });
   }
 
   addMarker(String id, double lat, double long, String type) {
@@ -509,6 +513,15 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         Marker(markerId: markerId, position: LatLng(lat, long));
     setState(() {
       markers.add(marker);
+    });
+  }
+
+  void removeMarker(String id, double lat, double long, String type) {
+    MarkerId markerId = MarkerId(id + type);
+    final Marker marker =
+        Marker(markerId: markerId, position: LatLng(lat, long));
+    setState(() {
+      markers.remove(marker);
     });
   }
 }
