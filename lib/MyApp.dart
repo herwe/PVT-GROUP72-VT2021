@@ -263,7 +263,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                     .map((park) => GestureDetector(
                           onTap: () {
                             findAndGoToMarker(park);
-
                             FocusScopeNode currentFocus = FocusScope.of(context);
 
                             if (!currentFocus.hasPrimaryFocus) {
