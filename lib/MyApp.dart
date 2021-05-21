@@ -171,7 +171,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
       //Updates the markers.
       this.markers = markers;
-      if (showToilets) loadToilets();
+      if (showToilets) addToilets();
     });
   }
 
@@ -383,7 +383,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         FloatingActionButton(
           onPressed: () => {
             showToilets = !showToilets,
-            if (!showToilets) loadToilets(),
+            if (!showToilets) removeToilets() else addToilets(),
             _updateMarkers(markers)
           },
           child: Icon(Icons.wc_rounded),
@@ -496,18 +496,26 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   void loadToilets() {
     if (showToilets == false) {
-      getToilets().then((toilets) {
-        for (Toilet t in toilets) {
-          removeMarker(t.id.toString(), t.lat, t.long, "wc");
-        }
-      });
+      removeToilets();
     } else {
-      getToilets().then((toilets) {
-        for (Toilet t in toilets) {
-          addMarker(t.id.toString(), t.lat, t.long, "wc");
-        }
-      });
+      addToilets();
     }
+  }
+
+  void addToilets() {
+    getToilets().then((toilets) {
+      for (Toilet t in toilets) {
+        addMarker(t.id.toString(), t.lat, t.long, "wc");
+      }
+    });
+  }
+
+  void removeToilets() {
+    getToilets().then((toilets) {
+      for (Toilet t in toilets) {
+        removeMarker(t.id.toString(), t.lat, t.long, "wc");
+      }
+    });
   }
 
   addMarker(String id, double lat, double long, String type) {
