@@ -170,6 +170,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
       //Updates the markers.
       this.markers = markers;
+      loadToilets();
     });
   }
 
