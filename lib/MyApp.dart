@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:ui' as ui;
 
 import 'package:flutter/cupertino.dart';
@@ -46,39 +47,36 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   Set<Marker> markers = Set();
 
-  List<ClusterItem<Park>> parks;
+  HashMap<String, ClusterItem<Park>> parks;
+  List<ClusterItem> listViewParks;
 
   _initParks() {
-    parks = [];
+    parks = new HashMap();
+    listViewParks = [];
 
     //All parks are loaded and stored in ClusterItems.
     getParks().then((loadedParks) {
       for (Park p in loadedParks) {
-        parks.add(ClusterItem(LatLng(p.lat, p.long), item: p));
+        parks.putIfAbsent(
+            p.name, () => ClusterItem(LatLng(p.lat, p.long), item: p));
       }
+
+      listViewParks.addAll(parks.values);
       sortParksAlphabetically();
     });
   }
 
   sortParksAlphabetically() {
-    parks.sort((a, b) => a.item.name.compareTo(b.item.name));
+    listViewParks.sort((a, b) => a.item.name.compareTo(b.item.name));
+  }
+
+  sortParksReverseAlphabetically() {
+    listViewParks.sort((a, b) => -a.item.name.compareTo(b.item.name));
   }
 
   sortParksByDistance() {
     setParkDistances();
-    int n = 0;
-    int d = 0;
-    for (int i = 0; i < parks.length; i++) {
-      if (parks[i].item.distance == null) {
-        n++;
-      }
-      else {
-        d++;
-      }
-    }
-    print("D: " + d.toString() + "N: " + n.toString());
-
-    parks.sort((a, b) => a.item.distance.compareTo(b.item.distance));
+    listViewParks.sort((a, b) => a.item.distance.compareTo(b.item.distance));
   }
 
   initState() {
@@ -92,11 +90,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     clusterManager = _initClusterManager();
 
     setCurrentLocation();
+    setParkDistances();
   }
 
   //Cluster implementation "stolen" from: https://pub.dev/packages/google_maps_cluster_manager
   ClusterManager _initClusterManager() {
-    return ClusterManager<Park>(parks, _updateMarkers,
+    return ClusterManager<Park>(parks.values, _updateMarkers,
         initialZoom: dsv.zoom,
         stopClusteringZoom: 14.0,
         markerBuilder:
@@ -184,7 +183,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     print("Amount of Favorites: " + favoriteParks.length.toString());
     setState(() {
       //If no filters are selected, for every quality remove the pars that do not have it.
-      parks.removeWhere((element) => removePark(element));
+      parks.removeWhere((key, value) => removePark(value));
 
       //Adds the previously discarded parks that now conform to the filter.
       discardedParks.removeWhere((element) => reAddPark(element));
@@ -225,7 +224,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       }
     }
 
-    parks.add(element);
+    parks.putIfAbsent(element.item.name, () => element);
     return true;
   }
 
@@ -377,7 +376,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                     sortParksAlphabetically();
                   }
                   else if (dropDownValue == "Ö - A") {
-                    print("Not implemented");
+                    sortParksReverseAlphabetically();
                   }
                   else {
                     sortParksByDistance();
@@ -400,7 +399,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             child: ListView.builder(
               scrollDirection: Axis.vertical,
               shrinkWrap: true,
-              itemCount: parks.length,
+              itemCount: listViewParks.length,
               itemBuilder: (BuildContext context, int index) {
                 return Container(
                     padding: const EdgeInsets.all(10.0),
@@ -412,27 +411,27 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(parks[index].item.name),
+                            Text(listViewParks[index].item.name),
                             Column(
                               children: [
                                 IconButton(
                                     onPressed: () {
                                       setState(() {
-                                        if (!favoriteParks.contains(parks[index].item)) {
-                                          favoriteParks.add(parks[index].item);
+                                        if (!favoriteParks.contains(listViewParks[index].item)) {
+                                          favoriteParks.add(listViewParks[index].item);
                                         }
                                         else {
-                                          favoriteParks.remove(parks[index].item);
+                                          favoriteParks.remove(listViewParks[index].item);
                                         }
                                       });
                                     },
-                                    icon: favoriteParks.contains(parks[index].item) ? Icon(Icons.favorite, color: Colors.red) : Icon(Icons.favorite_border, color: Colors.red)),
-                                Text("Avstånd: " + parks[index].item.distance.toStringAsFixed(0) + " km")
+                                    icon: favoriteParks.contains(listViewParks[index].item) ? Icon(Icons.favorite, color: Colors.red) : Icon(Icons.favorite_border, color: Colors.red)),
+                                dropDownValue == "Nära mig" ? Text("Avstånd: " + listViewParks[index].item.distance.toStringAsFixed(0) + " km") : Text("") //TODO: Bort med hårdkodad text sträng
                               ],
                             )
                           ],
                         ),
-                        buildParkInfo(parks[index].item)
+                        buildParkInfo(listViewParks[index].item)
                       ],
                     )
                 );
@@ -456,7 +455,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   }
 
   setParkDistances() {
-    for (ClusterItem<Park> ci in parks) {
+    for (ClusterItem<Park> ci in listViewParks) {
       ci.item.distance = calculateCoordinateDistance(ci.location);
     }
   }
@@ -574,20 +573,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                     mainAxisSize: MainAxisSize.max,
                     children: [
                       Text(p.name),
-                      buildParkInfo(p),
-                      IconButton(
-                          onPressed: () {
-                            setState(() {
-                              if (!favoriteParks.contains(p)) {
-                                favoriteParks.add(p);
-                              }
-                              else {
-                                favoriteParks.remove(p);
-                              }
-                              print(favoriteParks.contains(p));
-                            });
-                          },
-                          icon: favoriteParks.contains(p) ? Icon(Icons.favorite, color: Colors.red) : Icon(Icons.favorite_border, color: Colors.red))
+                      buildParkInfo(p)
                     ],
                   ),
                 ],
