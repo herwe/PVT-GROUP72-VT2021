@@ -493,7 +493,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   void loadToilets() {
     showToilets = !showToilets;
     if (showToilets == false) {
-      _updateMarkers(markers);
+      _initClusterManager();
       return;
     }
     getToilets().then((toilets) {
