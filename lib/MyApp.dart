@@ -53,6 +53,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   Set<Marker> toiletMarkers = Set();
 
+  BitmapDescriptor myIcon;
+
   var smallIconSize = 50;
 
   _initParks() {
@@ -74,7 +76,11 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     rootBundle.loadString('map_style.txt').then((string) {
       mapStyling = string;
     });
-    loadIcons();
+    BitmapDescriptor.fromAssetImage(
+        ImageConfiguration(size: Size(48, 48)), 'assets/wc.png')
+        .then((onValue) {
+      myIcon = onValue;
+    });
     _initParks();
     clusterManager = _initClusterManager();
     _initToilets();
@@ -546,7 +552,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     final Marker marker = Marker(
         markerId: markerId,
         position: LatLng(lat, long),
-        icon: BitmapDescriptor.fromBytes(icon),
+        icon: myIcon,
         onTap: () {
           print("marker tapped: ${markerId}");
         });
@@ -558,53 +564,4 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   Uint8List toiletIcon;
 
-  loadIcons() async {
-    //todo change the dimensions?
-    toiletIcon = await getBytesFromCanvas(100, 100);
-    // await getBytesFromAsset('assets/wc.png', smallIconSize);
-  }
-
-  Future<Uint8List> getBytesFromCanvas(int width, int height) async {
-    final ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
-    final Canvas canvas = Canvas(pictureRecorder);
-    final Paint paint = Paint()..color = Colors.blue;
-    final Radius radius = Radius.circular(20.0);
-
-    canvas.drawRRect(
-        RRect.fromRectAndCorners(
-          Rect.fromLTWH(0.0, 0.0, width.toDouble(), height.toDouble()),
-          topLeft: radius,
-          topRight: radius,
-          bottomLeft: radius,
-          bottomRight: radius,
-        ),
-        paint);
-
-    TextPainter painter = TextPainter(textDirection: TextDirection.ltr);
-    painter.text = TextSpan(
-      text: 'WC',
-      style: TextStyle(
-        fontSize: 25.0,
-        color: Colors.black,
-      ),
-    );
-    painter.layout();
-    painter.paint(
-        canvas,
-        Offset((width * 0.5) - painter.width * 0.5,
-            (height * 0.5) - painter.height * 0.5));
-    final img = await pictureRecorder.endRecording().toImage(width, height);
-    final data = await img.toByteData(format: ui.ImageByteFormat.png);
-    return data.buffer.asUint8List();
-  }
-
-  Future<Uint8List> getBytesFromAsset(String path, int width) async {
-    ByteData data = await rootBundle.load(path);
-    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(),
-        targetWidth: width);
-    ui.FrameInfo fi = await codec.getNextFrame();
-    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))
-        .buffer
-        .asUint8List();
-  }
 }
