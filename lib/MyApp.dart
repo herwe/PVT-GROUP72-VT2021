@@ -381,7 +381,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           child: Icon(Icons.location_on),
         ),
         FloatingActionButton(
-          onPressed: () => {showToilets = !showToilets},
+          onPressed: () =>
+              {showToilets = !showToilets, _updateMarkers(markers)},
           child: Icon(Icons.wc_rounded),
         )
       ],
