@@ -51,7 +51,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   HashMap<String, ClusterItem<Park>> parks;
 
-  var toiletMarkers;
+  Set<Marker> toiletMarkers = Set();
 
   var smallIconSize = 50;
 
