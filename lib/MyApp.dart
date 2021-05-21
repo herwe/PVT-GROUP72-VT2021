@@ -50,6 +50,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   HashMap<String, ClusterItem<Park>> parks;
 
+  var toiletMarkers;
+
   _initParks() {
     print("init");
     parks = new HashMap();
@@ -72,6 +74,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
     _initParks();
     clusterManager = _initClusterManager();
+    _initToilets();
   }
 
   //Cluster implementation stolen from: https://pub.dev/packages/google_maps_cluster_manager
@@ -381,11 +384,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           child: Icon(Icons.location_on),
         ),
         FloatingActionButton(
-          onPressed: () => {
-            showToilets = !showToilets,
-            if (!showToilets) removeToilets() else addToilets(),
-            _updateMarkers(markers)
-          },
+          onPressed: () =>
+              {showToilets = !showToilets, _updateMarkers(markers)},
           child: Icon(Icons.wc_rounded),
         )
       ],
@@ -503,19 +503,11 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   }
 
   void addToilets() {
-    getToilets().then((toilets) {
-      for (Toilet t in toilets) {
-        addMarker(t.id.toString(), t.lat, t.long, "wc");
-      }
-    });
+    markers.addAll(toiletMarkers);
   }
 
   void removeToilets() {
-    getToilets().then((toilets) {
-      for (Toilet t in toilets) {
-        removeMarker(t.id.toString(), t.lat, t.long, "wc");
-      }
-    });
+    markers.removeAll(toiletMarkers);
   }
 
   addMarker(String id, double lat, double long, String type) {
@@ -533,6 +525,23 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         Marker(markerId: markerId, position: LatLng(lat, long));
     setState(() {
       markers.remove(marker);
+    });
+  }
+
+  void _initToilets() {
+    getToilets().then((toilets) {
+      for (Toilet t in toilets) {
+        addToiletMarker(t.id.toString(), t.lat, t.long, "wc");
+      }
+    });
+  }
+
+  void addToiletMarker(String id, double lat, double long, String type) {
+    MarkerId markerId = MarkerId(id + type);
+    final Marker marker =
+        Marker(markerId: markerId, position: LatLng(lat, long));
+    setState(() {
+      toiletMarkers.add(marker);
     });
   }
 }
