@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/qualities.dart';
+import 'package:flutter_app/toilet.dart';
 import 'package:google_maps_cluster_manager/google_maps_cluster_manager.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
@@ -263,13 +264,15 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                     .map((park) => GestureDetector(
                           onTap: () {
                             findAndGoToMarker(park);
-                            FocusScopeNode currentFocus = FocusScope.of(context);
+                            FocusScopeNode currentFocus =
+                                FocusScope.of(context);
 
                             if (!currentFocus.hasPrimaryFocus) {
                               currentFocus.unfocus();
                             }
 
-                            String snackBarText = 'Kameran fokuserar nu på: ' + park.item.name.toString();
+                            String snackBarText = 'Kameran fokuserar nu på: ' +
+                                park.item.name.toString();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(snackBarText),
@@ -280,12 +283,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                             //height: 112,
                             width: 420,
                             child: Padding(
-                              child: Text(park.item.name, style: TextStyle(fontSize: 30)),
+                              child: Text(park.item.name,
+                                  style: TextStyle(fontSize: 30)),
                               padding: EdgeInsets.fromLTRB(50, 25, 50, 25),
                             ),
                             decoration: BoxDecoration(
-                              border: Border.all(color: Colors.black)
-                            ),
+                                border: Border.all(color: Colors.black)),
                           ),
                         ))
                     .toList()),
@@ -375,6 +378,10 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           onPressed: _currentLocation,
           child: Icon(Icons.location_on),
         ),
+        FloatingActionButton(
+          onPressed: loadToilets,
+          child: Icon(Icons.wc_rounded),
+        )
       ],
     );
   }
@@ -479,5 +486,22 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         zoom: 17.0,
       ),
     ));
+  }
+
+  void loadToilets() {
+    getToilets().then((toilets) {
+      for (Toilet t in toilets) {
+        addMarker(t.id.toString(), t.lat, t.long, "wc");
+      }
+    });
+  }
+
+  addMarker(String id, double lat, double long, String type) {
+    MarkerId markerId = MarkerId(id + type);
+    final Marker marker =
+        Marker(markerId: markerId, position: LatLng(lat, long));
+    setState(() {
+      markers.add(marker);
+    });
   }
 }
