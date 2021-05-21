@@ -568,6 +568,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     final Canvas canvas = Canvas(pictureRecorder);
     final Paint paint = Paint()..color = Colors.blue;
     final Radius radius = Radius.circular(20.0);
+    canvas.drawCircle(Offset(10, 10), 50, Paint()..color = Colors.white);
     canvas.drawRRect(
         RRect.fromRectAndCorners(
           Rect.fromLTWH(0.0, 0.0, width.toDouble(), height.toDouble()),
@@ -580,7 +581,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     TextPainter painter = TextPainter(textDirection: TextDirection.ltr);
     painter.text = TextSpan(
       text: 'WC',
-      style: TextStyle(fontSize: 25.0, color: Colors.white),
+      style: TextStyle(fontSize: 25.0, color: Colors.black),
     );
     painter.layout();
     painter.paint(
