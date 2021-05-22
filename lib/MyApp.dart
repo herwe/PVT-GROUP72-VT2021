@@ -270,9 +270,10 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       width: isPortrait ? 600 : 500,
       debounceDelay: const Duration(milliseconds: 500),
       onQueryChanged: (query) {
-        showParksThatMatchQuery(getSuggestions(query));
-
         //change what is shown as suggestions
+        setState(() {
+          setSuggestions(query);
+        });
         // Call your model, bloc, controller here.
       },
 
@@ -298,11 +299,37 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             color: Colors.white,
             elevation: 4.0,
             child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: Colors.accents.map((color) {
-                return Container(height: 112, color: color);
-              }).toList(),
-            ),
+                mainAxisSize: MainAxisSize.min,
+                children: getSuggestions()
+                    .map((park) => GestureDetector(
+                          onTap: () {
+                            findAndGoToMarker(park);
+                            FocusScopeNode currentFocus = FocusScope.of(context);
+
+                            if (!currentFocus.hasPrimaryFocus) {
+                              currentFocus.unfocus();
+                            }
+
+                            String snackBarText = 'Kameran fokuserar nu på: ' + park.item.name.toString();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(snackBarText),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            //height: 112,
+                            width: 420,
+                            child: Padding(
+                              child: Text(park.item.name, style: TextStyle(fontSize: 30)),
+                              padding: EdgeInsets.fromLTRB(50, 25, 50, 25),
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.black)
+                            ),
+                          ),
+                        ))
+                    .toList()),
           ),
         );
       },
@@ -557,8 +584,10 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         )));
   }
 
-  getSuggestions(String pattern) {
-    return new List<ClusterItem<Park>>();
+  List<ClusterItem<Park>> parkSuggestions = [];
+
+  List<ClusterItem<Park>> getSuggestions() {
+    return parkSuggestions;
   }
 
   showClickedParkSheet(p) {
@@ -583,7 +612,25 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         });
   }
 
-  void showParksThatMatchQuery(suggestions) {
-    //todo show some parks
+  void setSuggestions(String query) {
+    parkSuggestions = [];
+    if (query.isEmpty) {
+      return;
+    }
+    for (String name in parks.keys) {
+      if (name.toLowerCase().startsWith(query.toLowerCase())) {
+        parkSuggestions.add(parks[name]);
+      }
+    }
+  }
+
+  findAndGoToMarker(ClusterItem<Park> park) {
+    mapController.animateCamera(CameraUpdate.newCameraPosition(
+      CameraPosition(
+        bearing: 0,
+        target: LatLng(park.location.latitude, park.location.longitude),
+        zoom: 17.0,
+      ),
+    ));
   }
 }
