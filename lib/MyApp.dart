@@ -184,6 +184,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     setState(() {
       //If no filters are selected, for every quality remove the pars that do not have it.
       parks.removeWhere((key, value) => removePark(value));
+      listViewParks.removeWhere((element) => removePark(element));
 
       //Adds the previously discarded parks that now conform to the filter.
       discardedParks.removeWhere((element) => reAddPark(element));
@@ -225,6 +226,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     }
 
     parks.putIfAbsent(element.item.name, () => element);
+    listViewParks.add(element);
     return true;
   }
 
