@@ -11,6 +11,7 @@ import 'package:google_maps_cluster_manager/google_maps_cluster_manager.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
+import 'dart:math' show cos, sqrt, asin;
 
 import 'filterSheet.dart';
 import 'park.dart';
@@ -47,10 +48,11 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   Set<Marker> markers = Set();
 
   HashMap<String, ClusterItem<Park>> parks;
+  List<ClusterItem> listViewParks;
 
   _initParks() {
-    print("init");
     parks = new HashMap();
+    listViewParks = [];
 
     //All parks are loaded and stored in ClusterItems.
     getParks().then((loadedParks) {
@@ -58,7 +60,23 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         parks.putIfAbsent(
             p.name, () => ClusterItem(LatLng(p.lat, p.long), item: p));
       }
+
+      listViewParks.addAll(parks.values);
+      sortParksAlphabetically();
     });
+  }
+
+  sortParksAlphabetically() {
+    listViewParks.sort((a, b) => a.item.name.compareTo(b.item.name));
+  }
+
+  sortParksReverseAlphabetically() {
+    listViewParks.sort((a, b) => -a.item.name.compareTo(b.item.name));
+  }
+
+  sortParksByDistance() {
+    setParkDistances();
+    listViewParks.sort((a, b) => a.item.distance.compareTo(b.item.distance));
   }
 
   initState() {
@@ -70,9 +88,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
     _initParks();
     clusterManager = _initClusterManager();
+
+    setCurrentLocation();
+    setParkDistances();
   }
 
-  //Cluster implementation stolen from: https://pub.dev/packages/google_maps_cluster_manager
+  //Cluster implementation "stolen" from: https://pub.dev/packages/google_maps_cluster_manager
   ClusterManager _initClusterManager() {
     return ClusterManager<Park>(parks.values, _updateMarkers,
         initialZoom: dsv.zoom,
@@ -81,6 +102,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             markerBuilder); //Change stopClusteringZoom at your own risk
   }
 
+  //TODO: Koden ser konstig ut, vad är meningen med Qualities.grill?
   buildParkInfo(Park p) {
     return Wrap(
       spacing: 8.0, // gap between adjacent chips
@@ -154,18 +176,20 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     return BitmapDescriptor.fromBytes(data.buffer.asUint8List());
   }
 
-  List<ClusterItem<Park>> discardedParks =
-      []; //Saves all the parks that have been discarded by the filter.
+  List<ClusterItem<Park>> discardedParks = []; //Saves all the parks that have been discarded by the filter.
   void _updateMarkers(Set<Marker> markers) {
     print('Updated ${markers.length} markers');
+    print("Only Favorites?: " + onlyFavorites.toString());
+    print("Amount of Favorites: " + favoriteParks.length.toString());
     setState(() {
       //If no filters are selected, for every quality remove the pars that do not have it.
-      if (!noneSelected()) {
-        parks.removeWhere((key, value) => removePark(value));
-      }
+      parks.removeWhere((key, value) => removePark(value));
+      listViewParks.removeWhere((element) => removePark(element));
 
       //Adds the previously discarded parks that now conform to the filter.
       discardedParks.removeWhere((element) => reAddPark(element));
+
+      sortParksAlphabetically();
 
       //Updates the markers.
       this.markers = markers;
@@ -173,23 +197,36 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   }
 
   bool removePark(ClusterItem<Park> element) {
-    for (Qualities q in filterMap.keys) {
-      if (filterMap[q] && !element.item.parkQualities.contains(q)) {
-        discardedParks
-            .add(element); //To avoid concurrent modification exception.
-        return true;
+    if (onlyFavorites && !favoriteParks.contains(element.item)) {
+      discardedParks.add(element);
+      return true;
+    }
+
+    if (!noneSelected()) {
+      for (Qualities q in filterMap.keys) {
+        if (filterMap[q] && !element.item.parkQualities.contains(q)) {
+          discardedParks.add(element); //To avoid concurrent modification exception.
+          return true;
+        }
       }
     }
+
     return false;
   }
 
   bool reAddPark(ClusterItem<Park> element) {
+    if (onlyFavorites && !favoriteParks.contains(element.item)) {
+      return false;
+    }
+
     for (Qualities q in filterMap.keys) {
       if (filterMap[q] && !(element.item).parkQualities.contains(q)) {
         return false;
       }
     }
+
     parks.putIfAbsent(element.item.name, () => element);
+    listViewParks.add(element);
     return true;
   }
 
@@ -197,14 +234,18 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     return !filterMap.values.contains(true);
   }
 
-  void _currentLocation() async {
-    LocationData currentLocation;
+  LocationData currentLocation;
+  void setCurrentLocation() async {
     var location = new Location();
     try {
       currentLocation = await location.getLocation();
     } on Exception {
       currentLocation = null;
     }
+  }
+
+  void _currentLocation() async {
+    setCurrentLocation();
 
     mapController.animateCamera(CameraUpdate.newCameraPosition(
       CameraPosition(
@@ -301,9 +342,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   }
 
   @override
-  Widget build(BuildContext context) => MaterialApp(home: buildViews()
-      //mainAxisAlignment: MainAxisAlignment.spaceBetween
-      );
+  Widget build(BuildContext context) => MaterialApp(home: buildViews());
 
   DefaultTabController buildViews() {
     return DefaultTabController(
@@ -313,23 +352,162 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             appBar: buildAppBar(),
             drawer: buildDrawer(),
             body:
-                TabBarView(physics: NeverScrollableScrollPhysics(), children: [
-              Stack(
-                fit: StackFit.expand,
-                children: [
-                  buildGoogleMap(),
-                  buildFloatingSearchBar(),
-                ],
-              ),
-              Stack(
-                fit: StackFit.expand,
-                children: [
-                  buildFloatingSearchBar(),
-                ],
-              )
+                TabBarView(
+                    physics: NeverScrollableScrollPhysics(),
+                    children: [
+                      Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          buildGoogleMap(),
+                          buildFloatingSearchBar(),
+                      ],
+                      ),
+                      Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Column(
+                            children: [
+                              buildListViewTop(),
+                              buildListView(),
+                              buildListViewBottom()
+                            ],
+                          )
+                        ],
+                      )
             ]),
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
             floatingActionButton: buildFloatingActionButtonsColumn()));
+  }
+
+  String dropDownValue = "A - Ö";
+  buildListViewTop() {
+    return Container(
+      padding: const EdgeInsets.all(10.0),
+      child: Column(
+        children: [
+          Text("Alla parker och deras kvaliteter", style: TextStyle(fontWeight: FontWeight.bold)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              DropdownButton<String>(
+                items: <String>["A - Ö", "Ö - A", "Nära mig"].map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              value: dropDownValue,
+              onChanged: (String newValue) {
+                setState(() {
+                  dropDownValue = newValue;
+
+                  if (dropDownValue == "A - Ö") {
+                    sortParksAlphabetically();
+                  }
+                  else if (dropDownValue == "Ö - A") {
+                    sortParksReverseAlphabetically();
+                  }
+                  else {
+                    sortParksByDistance();
+                  }
+                });
+              },)
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  List<Park> favoriteParks = [];
+  buildListView() {
+    return FutureBuilder(
+      builder: (context, AsyncSnapshot snapshot) {
+        return Container(
+          child: Expanded(
+            child: ListView.builder(
+              scrollDirection: Axis.vertical,
+              shrinkWrap: true,
+              itemCount: listViewParks.length,
+              itemBuilder: (BuildContext context, int index) {
+                return Container(
+                    padding: const EdgeInsets.all(10.0),
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black)
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(listViewParks[index].item.name),
+                            Column(
+                              children: [
+                                IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        if (!favoriteParks.contains(listViewParks[index].item)) {
+                                          favoriteParks.add(listViewParks[index].item);
+                                        }
+                                        else {
+                                          favoriteParks.remove(listViewParks[index].item);
+                                        }
+                                      });
+                                    },
+                                    icon: favoriteParks.contains(listViewParks[index].item) ? Icon(Icons.favorite, color: Colors.red) : Icon(Icons.favorite_border, color: Colors.red)),
+                                dropDownValue == "Nära mig" ? Text("Avstånd: " + listViewParks[index].item.distance.toStringAsFixed(1) + " km") : Text("") //TODO: Bort med hårdkodad text sträng
+                              ],
+                            )
+                          ],
+                        ),
+                        buildParkInfo(listViewParks[index].item)
+                      ],
+                    )
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  //https://stackoverflow.com/questions/54138750/total-distance-calculation-from-latlng-list
+  //Maybe change to this instead?: https://pub.dev/packages/geolocator
+  double calculateCoordinateDistance(LatLng destination) {
+    var p = 0.017453292519943295;
+    var c = cos;
+    var a = 0.5 - c((destination.latitude - currentLocation.latitude) * p)/2
+        + c(currentLocation.latitude * p) * c(destination.latitude * p)
+            * (1 - c((destination.longitude - currentLocation.longitude) * p))/2;
+    return 12742 * asin(sqrt(a));
+  }
+
+  setParkDistances() {
+    for (ClusterItem<Park> ci in listViewParks) {
+      ci.item.distance = calculateCoordinateDistance(ci.location);
+    }
+  }
+
+  bool onlyFavorites = false;
+  buildListViewBottom() {
+    return Container(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Text("Visa Endast favoriter: ", style: TextStyle(fontWeight: FontWeight.bold)),
+          Checkbox(
+            value: onlyFavorites,
+            onChanged: (value) {
+              setState(() {
+                onlyFavorites = !onlyFavorites;
+                _updateMarkers(markers);
+              });
+            },
+          )
+        ],
+      ),
+    );
   }
 
   Drawer buildDrawer() {
@@ -358,15 +536,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
-        /*** THIS BUTTON IS PROBABLY NOT NEEDED. ***\
-            FloatingActionButton(
-            onPressed: () {
-            print("Not implemented");
-            },
-            child: Icon(Icons.search),
-            ),
-
-         */
         FloatingActionButton(
           onPressed: _showFilters,
           child: Icon(Icons.filter_alt_outlined),
@@ -388,7 +557,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             icon: Icon(Icons.map),
           ),
           Tab(
-            icon: Icon(Icons.filter_alt_outlined),
+            icon: Icon(Icons.list),
           ),
         ],
       ),
@@ -433,25 +602,9 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                   Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     mainAxisSize: MainAxisSize.max,
-                    children: <Widget>[Text(p.name), buildParkInfo(p)],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      ElevatedButton(
-                          onPressed: () => print("Not implemented"),
-                          child: Text("Favorit",
-                              style: TextStyle(color: Colors.black)),
-                          style: ElevatedButton.styleFrom(
-                              primary: Colors.yellowAccent,
-                              textStyle: TextStyle(color: Colors.black))),
-                      ElevatedButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text("Stäng",
-                              style: TextStyle(color: Colors.black)),
-                          style: ElevatedButton.styleFrom(
-                              primary: Colors.lightGreen))
+                    children: [
+                      Text(p.name),
+                      buildParkInfo(p)
                     ],
                   ),
                 ],
