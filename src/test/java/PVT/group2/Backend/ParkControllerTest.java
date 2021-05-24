@@ -1,6 +1,7 @@
 package PVT.group2.Backend;
 
 import PVT.group2.Backend.controller.ParkController;
+import org.json.JSONArray;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,5 +31,13 @@ class ParkControllerTest {
         RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/parks/all");
         MvcResult result = mvc.perform(requestBuilder).andReturn();
         assertEquals(200, result.getResponse().getStatus());
+    }
+
+    final int PARKS_WITH_GREEN_QUALITY = 984;
+    @Test
+    void slashGreenReturnsCorrectAmountOfEntries() throws Exception {
+        RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/parks/green");
+        MvcResult result = mvc.perform(requestBuilder).andReturn();
+        assertEquals(PARKS_WITH_GREEN_QUALITY, new JSONArray(result.getResponse().getContentAsString()).length());
     }
 }
