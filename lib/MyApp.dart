@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:collection';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -50,8 +49,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   Set<Marker> markers = Set();
 
-  HashMap<String, ClusterItem<Park>> parks;
-  List<ClusterItem> listViewParks;
+  List<ClusterItem<Park>> parks;
 
   Set<Marker> toiletMarkers = Set();
 
@@ -60,32 +58,29 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   var smallIconSize = 50;
 
   _initParks() {
-    parks = new HashMap();
-    listViewParks = [];
+    parks = [];
 
     //All parks are loaded and stored in ClusterItems.
     getParks().then((loadedParks) {
       for (Park p in loadedParks) {
-        parks.putIfAbsent(
-            p.name, () => ClusterItem(LatLng(p.lat, p.long), item: p));
+        parks.add(ClusterItem(LatLng(p.lat, p.long), item: p));
       }
 
-      listViewParks.addAll(parks.values);
       sortParksAlphabetically();
     });
   }
 
   sortParksAlphabetically() {
-    listViewParks.sort((a, b) => a.item.name.compareTo(b.item.name));
+    parks.sort((a, b) => a.item.name.compareTo(b.item.name));
   }
 
   sortParksReverseAlphabetically() {
-    listViewParks.sort((a, b) => -a.item.name.compareTo(b.item.name));
+    parks.sort((a, b) => -a.item.name.compareTo(b.item.name));
   }
 
   sortParksByDistance() {
     setParkDistances();
-    listViewParks.sort((a, b) => a.item.distance.compareTo(b.item.distance));
+    parks.sort((a, b) => a.item.distance.compareTo(b.item.distance));
   }
 
   initState() {
@@ -109,14 +104,13 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   //Cluster implementation "stolen" from: https://pub.dev/packages/google_maps_cluster_manager
   ClusterManager _initClusterManager() {
-    return ClusterManager<Park>(parks.values, _updateMarkers,
+    return ClusterManager<Park>(parks, _updateMarkers,
         initialZoom: dsv.zoom,
         stopClusteringZoom: 14.0,
         markerBuilder:
             markerBuilder); //Change stopClusteringZoom at your own risk
   }
 
-  //TODO: Koden ser konstig ut, vad är meningen med Qualities.grill?
   buildParkInfo(Park p) {
     return Wrap(
       spacing: 8.0, // gap between adjacent chips
@@ -130,15 +124,15 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             ),
             label: Text(q.formatted),
             labelStyle: TextStyle(
-                color: map[Qualities.grill] ? Colors.white : Colors.black),
-            selected: false,
+                color: Colors.black),
+            selected: true,
             onSelected: (bool selected) {
               setState(() {
-                map[Qualities.grill] = !map[Qualities.grill];
+
               });
             },
-            selectedColor: Colors.indigo,
-            checkmarkColor: Colors.black,
+            selectedColor: Colors.white,
+            showCheckmark: false,
           )
       ],
     );
@@ -197,8 +191,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     print("Amount of Favorites: " + favoriteParks.length.toString());
     setState(() {
       //If no filters are selected, for every quality remove the pars that do not have it.
-      parks.removeWhere((key, value) => removePark(value));
-      listViewParks.removeWhere((element) => removePark(element));
+      parks.removeWhere((value) => removePark(value));
 
       //Adds the previously discarded parks that now conform to the filter.
       discardedParks.removeWhere((element) => reAddPark(element));
@@ -240,8 +233,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       }
     }
 
-    parks.putIfAbsent(element.item.name, () => element);
-    listViewParks.add(element);
+    parks.add(element);
     return true;
   }
 
@@ -445,7 +437,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             child: ListView.builder(
               scrollDirection: Axis.vertical,
               shrinkWrap: true,
-              itemCount: listViewParks.length,
+              itemCount: parks.length,
               itemBuilder: (BuildContext context, int index) {
                 return Container(
                     padding: const EdgeInsets.all(10.0),
@@ -457,27 +449,27 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(listViewParks[index].item.name),
+                            Text(parks[index].item.name),
                             Column(
                               children: [
                                 IconButton(
                                     onPressed: () {
                                       setState(() {
-                                        if (!favoriteParks.contains(listViewParks[index].item)) {
-                                          favoriteParks.add(listViewParks[index].item);
+                                        if (!favoriteParks.contains(parks[index].item)) {
+                                          favoriteParks.add(parks[index].item);
                                         }
                                         else {
-                                          favoriteParks.remove(listViewParks[index].item);
+                                          favoriteParks.remove(parks[index].item);
                                         }
                                       });
                                     },
-                                    icon: favoriteParks.contains(listViewParks[index].item) ? Icon(Icons.favorite, color: Colors.red) : Icon(Icons.favorite_border, color: Colors.red)),
-                                dropDownValue == "Nära mig" ? Text("Avstånd: " + listViewParks[index].item.distance.toStringAsFixed(1) + " km") : Text("") //TODO: Bort med hårdkodad text sträng
+                                    icon: favoriteParks.contains(parks[index].item) ? Icon(Icons.favorite, color: Colors.red) : Icon(Icons.favorite_border, color: Colors.red)),
+                                dropDownValue == "Nära mig" ? Text("Avstånd: " + parks[index].item.distance.toStringAsFixed(1) + " km") : Text("") //TODO: Bort med hårdkodad text sträng
                               ],
                             )
                           ],
                         ),
-                        buildParkInfo(listViewParks[index].item)
+                        buildParkInfo(parks[index].item)
                       ],
                     )
                 );
@@ -501,7 +493,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   }
 
   setParkDistances() {
-    for (ClusterItem<Park> ci in listViewParks) {
+    for (ClusterItem<Park> ci in parks) {
       ci.item.distance = calculateCoordinateDistance(ci.location);
     }
   }
@@ -639,9 +631,9 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     if (query.isEmpty) {
       return;
     }
-    for (String name in parks.keys) {
-      if (name.toLowerCase().startsWith(query.toLowerCase())) {
-        parkSuggestions.add(parks[name]);
+    for (ClusterItem ci in parks) {
+      if (ci.item.name.toLowerCase().startsWith(query.toLowerCase())) {
+        parkSuggestions.add(parks[ci.item.p.name]);
       }
     }
   }
@@ -705,10 +697,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     final Marker marker = Marker(
         markerId: markerId,
         position: LatLng(lat, long),
-        icon: myIcon,
-        onTap: () {
-          print("marker tapped: ${markerId}");
-        });
+        icon: myIcon);
 
     setState(() {
       toiletMarkers.add(marker);
@@ -716,5 +705,4 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   }
 
   Uint8List toiletIcon;
-
 }
