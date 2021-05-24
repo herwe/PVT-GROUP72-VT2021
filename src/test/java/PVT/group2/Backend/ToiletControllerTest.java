@@ -12,26 +12,33 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
 @SpringBootTest
 @AutoConfigureMockMvc
-class ParkControllerTest {
+public class ToiletControllerTest {
 
     @Autowired
     private MockMvc mvc;
 
     @Test
     void slashAllReturnsCode200() throws Exception {
-        RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/parks/all");
+        RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/wc/all");
         MvcResult result = mvc.perform(requestBuilder).andReturn();
         assertEquals(200, result.getResponse().getStatus());
     }
 
-    final int PARKS_WITH_GREEN_QUALITY = 984;
+    final int TOILETS_WITH_OPERATIONAL_QUALITY = 96;
+    @Test
+    void slashOperationalReturnsCorrectAmountOfEntries() throws Exception {
+        RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/wc/operational");
+        MvcResult result = mvc.perform(requestBuilder).andReturn();
+        assertEquals(TOILETS_WITH_OPERATIONAL_QUALITY, new JSONArray(result.getResponse().getContentAsString()).length());
+    }
+
+    final int TOILETS_WITH_ADAPTED_QUALITY = 91;
     @Test
     void slashAdaptedReturnsCorrectAmountOfEntries() throws Exception {
-        RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/parks/green");
+        RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/wc/adapted");
         MvcResult result = mvc.perform(requestBuilder).andReturn();
-        assertEquals(PARKS_WITH_GREEN_QUALITY, new JSONArray(result.getResponse().getContentAsString()).length());
+        assertEquals(TOILETS_WITH_ADAPTED_QUALITY, new JSONArray(result.getResponse().getContentAsString()).length());
     }
 }
