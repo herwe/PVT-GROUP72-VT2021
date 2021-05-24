@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/cupertino.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/qualities.dart';
+import 'package:flutter_app/toilet.dart';
 import 'package:google_maps_cluster_manager/google_maps_cluster_manager.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
@@ -40,6 +42,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   GoogleMapController mapController;
   String mapStyling;
   ClusterManager clusterManager;
+  var showToilets = false;
 
   // Coordinates for DSV, Kista.
   final CameraPosition dsv = CameraPosition(
@@ -49,6 +52,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   HashMap<String, ClusterItem<Park>> parks;
   List<ClusterItem> listViewParks;
+
+  Set<Marker> toiletMarkers = Set();
+
+  BitmapDescriptor myIcon;
+
+  var smallIconSize = 50;
 
   _initParks() {
     parks = new HashMap();
@@ -85,9 +94,14 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     rootBundle.loadString('map_style.txt').then((string) {
       mapStyling = string;
     });
-
+    BitmapDescriptor.fromAssetImage(
+        ImageConfiguration(size: Size(48, 48)), 'assets/wc.png')
+        .then((onValue) {
+      myIcon = onValue;
+    });
     _initParks();
     clusterManager = _initClusterManager();
+    _initToilets();
 
     setCurrentLocation();
     setParkDistances();
@@ -193,6 +207,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
       //Updates the markers.
       this.markers = markers;
+      if (showToilets) addToilets();
     });
   }
 
@@ -304,13 +319,15 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                     .map((park) => GestureDetector(
                           onTap: () {
                             findAndGoToMarker(park);
-                            FocusScopeNode currentFocus = FocusScope.of(context);
+                            FocusScopeNode currentFocus =
+                                FocusScope.of(context);
 
                             if (!currentFocus.hasPrimaryFocus) {
                               currentFocus.unfocus();
                             }
 
-                            String snackBarText = 'Kameran fokuserar nu på: ' + park.item.name.toString();
+                            String snackBarText = 'Kameran fokuserar nu på: ' +
+                                park.item.name.toString();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(snackBarText),
@@ -321,12 +338,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                             //height: 112,
                             width: 420,
                             child: Padding(
-                              child: Text(park.item.name, style: TextStyle(fontSize: 30)),
+                              child: Text(park.item.name,
+                                  style: TextStyle(fontSize: 30)),
                               padding: EdgeInsets.fromLTRB(50, 25, 50, 25),
                             ),
                             decoration: BoxDecoration(
-                              border: Border.all(color: Colors.black)
-                            ),
+                                border: Border.all(color: Colors.black)),
                           ),
                         ))
                     .toList()),
@@ -544,6 +561,11 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           onPressed: _currentLocation,
           child: Icon(Icons.location_on),
         ),
+        FloatingActionButton(
+          onPressed: () =>
+              {showToilets = !showToilets, _updateMarkers(markers)},
+          child: Icon(Icons.wc_rounded),
+        )
       ],
     );
   }
@@ -633,4 +655,66 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       ),
     ));
   }
+
+  void loadToilets() {
+    if (showToilets == false) {
+      removeToilets();
+    } else {
+      addToilets();
+    }
+  }
+
+  void addToilets() {
+    markers.addAll(toiletMarkers);
+  }
+
+  void removeToilets() {
+    markers.removeAll(toiletMarkers);
+  }
+
+  addMarker(String id, double lat, double long, String type) {
+    MarkerId markerId = MarkerId(id + type);
+    final Marker marker =
+        Marker(markerId: markerId, position: LatLng(lat, long));
+    setState(() {
+      markers.add(marker);
+    });
+  }
+
+  void removeMarker(String id, double lat, double long, String type) {
+    MarkerId markerId = MarkerId(id + type);
+    final Marker marker =
+        Marker(markerId: markerId, position: LatLng(lat, long));
+    setState(() {
+      markers.remove(marker);
+    });
+  }
+
+  void _initToilets() {
+    getToilets().then((toilets) {
+      for (Toilet t in toilets) {
+        String info = "Ditsatt: ${t.operational}\nAnpassad: ${t.adapted}";
+        addToiletMarker(t.id.toString(), t.lat, t.long, "wc", info, toiletIcon);
+      }
+    });
+  }
+
+  void addToiletMarker(String id, double lat, double long, String type,
+      String info, Uint8List icon) {
+    MarkerId markerId = MarkerId(id + type);
+    final Marker marker = Marker(
+        markerId: markerId,
+        position: LatLng(lat, long),
+        icon: myIcon,
+        onTap: () {
+          print("marker tapped: ${markerId}");
+        });
+
+    setState(() {
+      toiletMarkers.add(marker);
+    });
+  }
+
+  Uint8List toiletIcon;
+
 }
