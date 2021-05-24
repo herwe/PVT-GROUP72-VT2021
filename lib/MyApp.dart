@@ -455,7 +455,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                                       });
                                     },
                                     icon: favoriteParks.contains(listViewParks[index].item) ? Icon(Icons.favorite, color: Colors.red) : Icon(Icons.favorite_border, color: Colors.red)),
-                                dropDownValue == "Nära mig" ? Text("Avstånd: " + listViewParks[index].item.distance.toStringAsFixed(0) + " km") : Text("") //TODO: Bort med hårdkodad text sträng
+                                dropDownValue == "Nära mig" ? Text("Avstånd: " + listViewParks[index].item.distance.toStringAsFixed(1) + " km") : Text("") //TODO: Bort med hårdkodad text sträng
                               ],
                             )
                           ],
