@@ -29,7 +29,7 @@ class ParkControllerTest {
 
     final int PARKS_WITH_GREEN_QUALITY = 984;
     @Test
-    void slashAdaptedReturnsCorrectAmountOfEntries() throws Exception {
+    void slashGreenReturnsCorrectAmountOfEntries() throws Exception {
         RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/parks/green");
         MvcResult result = mvc.perform(requestBuilder).andReturn();
         assertEquals(PARKS_WITH_GREEN_QUALITY, new JSONArray(result.getResponse().getContentAsString()).length());
