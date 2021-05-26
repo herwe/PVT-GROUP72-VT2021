@@ -49,7 +49,9 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   Set<Marker> markers = Set();
 
-  List<ClusterItem<Park>> parks;
+  List<ClusterItem<Park>> parks; //Where all parks will be stored and sorted according to the current sorting setting in the list view tab (default alphabetically)
+
+  List<Park> favoriteParks = [];
 
   Set<Marker> toiletMarkers = Set();
 
@@ -429,7 +431,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     );
   }
 
-  List<Park> favoriteParks = [];
   buildListView() {
     return FutureBuilder(
       builder: (context, AsyncSnapshot snapshot) {
@@ -482,7 +483,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                 ? Text("Avstånd: " +
                     parks[index].item.distance.toStringAsFixed(1) +
                     " km")
-                : Text("") //TODO: Bort med hårdkodad text sträng
+                : Text("") //When the drop drown is set tp "Nära mig" (Close to me) the distance will be shown as per the calculateCoordinateDistance method below.
           ],
         )
       ],
@@ -490,7 +491,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   }
 
   //https://stackoverflow.com/questions/54138750/total-distance-calculation-from-latlng-list
-  //Maybe change to this instead?: https://pub.dev/packages/geolocator
+  //Calculates the distance in km between the current location of the phone and the destination (the current park in question)
   double calculateCoordinateDistance(LatLng destination) {
     var p = 0.017453292519943295;
     var c = cos;
@@ -694,8 +695,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   void _initToilets() {
     getToilets().then((toilets) {
       for (Toilet t in toilets) {
-        //todo är detta korrekt?
-        String info = "Ditsatt: ${t.operational}\nAnpassad: ${t.adapted}";
+        String info = "Driftsatt: ${t.operational}\nAnpassad: ${t.adapted}";
         addToiletMarker(t.id.toString(), t.lat, t.long, "wc", info, toiletIcon);
       }
     });
