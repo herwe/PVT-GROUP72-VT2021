@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' show cos, sqrt, asin;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -12,7 +13,6 @@ import 'package:google_maps_cluster_manager/google_maps_cluster_manager.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
-import 'dart:math' show cos, sqrt, asin;
 
 import 'filterSheet.dart';
 import 'park.dart';
@@ -90,7 +90,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       mapStyling = string;
     });
     BitmapDescriptor.fromAssetImage(
-        ImageConfiguration(size: Size(48, 48)), 'assets/wc.png')
+            ImageConfiguration(size: Size(48, 48)), 'assets/wc.png')
         .then((onValue) {
       myIcon = onValue;
     });
@@ -123,13 +123,10 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
               child: Icon(Icons.accessibility),
             ),
             label: Text(q.formatted),
-            labelStyle: TextStyle(
-                color: Colors.black),
+            labelStyle: TextStyle(color: Colors.black),
             selected: true,
             onSelected: (bool selected) {
-              setState(() {
-
-              });
+              setState(() {});
             },
             selectedColor: Colors.white,
             showCheckmark: false,
@@ -184,13 +181,14 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     return BitmapDescriptor.fromBytes(data.buffer.asUint8List());
   }
 
-  List<ClusterItem<Park>> discardedParks = []; //Saves all the parks that have been discarded by the filter.
+  List<ClusterItem<Park>> discardedParks =
+      []; //Saves all the parks that have been discarded by the filter.
   void _updateMarkers(Set<Marker> markers) {
     print('Updated ${markers.length} markers');
     print("Only Favorites?: " + onlyFavorites.toString());
     print("Amount of Favorites: " + favoriteParks.length.toString());
     setState(() {
-      //If no filters are selected, for every quality remove the pars that do not have it.
+      //If no filters are selected, for every quality remove the parks that do not have it.
       parks.removeWhere((value) => removePark(value));
 
       //Adds the previously discarded parks that now conform to the filter.
@@ -213,7 +211,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     if (!noneSelected()) {
       for (Qualities q in filterMap.keys) {
         if (filterMap[q] && !element.item.parkQualities.contains(q)) {
-          discardedParks.add(element); //To avoid concurrent modification exception.
+          discardedParks
+              .add(element); //To avoid concurrent modification exception.
           return true;
         }
       }
@@ -299,50 +298,51 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           showIfClosed: false,
         ),
       ],
-      builder: (context, transition) {
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Material(
-            color: Colors.white,
-            elevation: 4.0,
-            child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: getSuggestions()
-                    .map((park) => GestureDetector(
-                          onTap: () {
-                            findAndGoToMarker(park);
-                            FocusScopeNode currentFocus =
-                                FocusScope.of(context);
-
-                            if (!currentFocus.hasPrimaryFocus) {
-                              currentFocus.unfocus();
-                            }
-
-                            String snackBarText = 'Kameran fokuserar nu på: ' +
-                                park.item.name.toString();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(snackBarText),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            //height: 112,
-                            width: 420,
-                            child: Padding(
-                              child: Text(park.item.name,
-                                  style: TextStyle(fontSize: 30)),
-                              padding: EdgeInsets.fromLTRB(50, 25, 50, 25),
-                            ),
-                            decoration: BoxDecoration(
-                                border: Border.all(color: Colors.black)),
-                          ),
-                        ))
-                    .toList()),
-          ),
-        );
-      },
+      builder: createSuggestionBlockHolder,
     );
+  }
+
+  Widget createSuggestionBlockHolder(context, transition) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Material(
+        color: Colors.white,
+        elevation: 4.0,
+        child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: createSuggestionBlocks(context).toList()),
+      ),
+    );
+  }
+
+  Iterable<GestureDetector> createSuggestionBlocks(context) {
+    return getSuggestions().map((park) => GestureDetector(
+          onTap: () {
+            findAndGoToMarker(park);
+            FocusScopeNode currentFocus = FocusScope.of(context);
+
+            if (!currentFocus.hasPrimaryFocus) {
+              currentFocus.unfocus();
+            }
+
+            String snackBarText =
+                'Kameran fokuserar nu på: ' + park.item.name.toString();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(snackBarText),
+              ),
+            );
+          },
+          child: Container(
+            //height: 112,
+            width: 420,
+            child: Padding(
+              child: Text(park.item.name, style: TextStyle(fontSize: 30)),
+              padding: EdgeInsets.fromLTRB(50, 25, 50, 25),
+            ),
+            decoration: BoxDecoration(border: Border.all(color: Colors.black)),
+          ),
+        ));
   }
 
   void _showFilters() {
@@ -361,28 +361,26 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             appBar: buildAppBar(),
             drawer: buildDrawer(),
             body:
-                TabBarView(
-                    physics: NeverScrollableScrollPhysics(),
+                TabBarView(physics: NeverScrollableScrollPhysics(), children: [
+              Stack(
+                fit: StackFit.expand,
+                children: [
+                  buildGoogleMap(),
+                  buildFloatingSearchBar(),
+                ],
+              ),
+              Stack(
+                fit: StackFit.expand,
+                children: [
+                  Column(
                     children: [
-                      Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          buildGoogleMap(),
-                          buildFloatingSearchBar(),
-                      ],
-                      ),
-                      Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          Column(
-                            children: [
-                              buildListViewTop(),
-                              buildListView(),
-                              buildListViewBottom()
-                            ],
-                          )
-                        ],
-                      )
+                      buildListViewTop(),
+                      buildListView(),
+                      buildListViewBottom()
+                    ],
+                  )
+                ],
+              )
             ]),
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
             floatingActionButton: buildFloatingActionButtonsColumn()));
@@ -394,37 +392,40 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       padding: const EdgeInsets.all(10.0),
       child: Column(
         children: [
-          Text("Alla parker och deras kvaliteter", style: TextStyle(fontWeight: FontWeight.bold)),
+          Text("Alla parker och deras kvaliteter",
+              style: TextStyle(fontWeight: FontWeight.bold)),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              DropdownButton<String>(
-                items: <String>["A - Ö", "Ö - A", "Nära mig"].map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              value: dropDownValue,
-              onChanged: (String newValue) {
-                setState(() {
-                  dropDownValue = newValue;
-
-                  if (dropDownValue == "A - Ö") {
-                    sortParksAlphabetically();
-                  }
-                  else if (dropDownValue == "Ö - A") {
-                    sortParksReverseAlphabetically();
-                  }
-                  else {
-                    sortParksByDistance();
-                  }
-                });
-              },)
-            ],
+            children: [buildQualitySortingDropdownButton()],
           )
         ],
       ),
+    );
+  }
+
+  DropdownButton<String> buildQualitySortingDropdownButton() {
+    return DropdownButton<String>(
+      items: <String>["A - Ö", "Ö - A", "Nära mig"]
+          .map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+      value: dropDownValue,
+      onChanged: (String newValue) {
+        setState(() {
+          dropDownValue = newValue;
+
+          if (dropDownValue == "A - Ö") {
+            sortParksAlphabetically();
+          } else if (dropDownValue == "Ö - A") {
+            sortParksReverseAlphabetically();
+          } else {
+            sortParksByDistance();
+          }
+        });
+      },
     );
   }
 
@@ -434,50 +435,57 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       builder: (context, AsyncSnapshot snapshot) {
         return Container(
           child: Expanded(
-            child: ListView.builder(
-              scrollDirection: Axis.vertical,
-              shrinkWrap: true,
-              itemCount: parks.length,
-              itemBuilder: (BuildContext context, int index) {
-                return Container(
-                    padding: const EdgeInsets.all(10.0),
-                    decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black)
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(parks[index].item.name),
-                            Column(
-                              children: [
-                                IconButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        if (!favoriteParks.contains(parks[index].item)) {
-                                          favoriteParks.add(parks[index].item);
-                                        }
-                                        else {
-                                          favoriteParks.remove(parks[index].item);
-                                        }
-                                      });
-                                    },
-                                    icon: favoriteParks.contains(parks[index].item) ? Icon(Icons.favorite, color: Colors.red) : Icon(Icons.favorite_border, color: Colors.red)),
-                                dropDownValue == "Nära mig" ? Text("Avstånd: " + parks[index].item.distance.toStringAsFixed(1) + " km") : Text("") //TODO: Bort med hårdkodad text sträng
-                              ],
-                            )
-                          ],
-                        ),
-                        buildParkInfo(parks[index].item)
-                      ],
-                    )
-                );
-              },
-            ),
+            child: buildParksListView(),
           ),
         );
       },
+    );
+  }
+
+  ListView buildParksListView() {
+    return ListView.builder(
+      scrollDirection: Axis.vertical,
+      shrinkWrap: true,
+      itemCount: parks.length,
+      itemBuilder: (BuildContext context, int index) {
+        return Container(
+            padding: const EdgeInsets.all(10.0),
+            decoration: BoxDecoration(border: Border.all(color: Colors.black)),
+            child: Column(
+              children: [buildParkRow(index), buildParkInfo(parks[index].item)],
+            ));
+      },
+    );
+  }
+
+  Row buildParkRow(int index) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(parks[index].item.name),
+        Column(
+          children: [
+            IconButton(
+                onPressed: () {
+                  setState(() {
+                    if (!favoriteParks.contains(parks[index].item)) {
+                      favoriteParks.add(parks[index].item);
+                    } else {
+                      favoriteParks.remove(parks[index].item);
+                    }
+                  });
+                },
+                icon: favoriteParks.contains(parks[index].item)
+                    ? Icon(Icons.favorite, color: Colors.red)
+                    : Icon(Icons.favorite_border, color: Colors.red)),
+            dropDownValue == "Nära mig"
+                ? Text("Avstånd: " +
+                    parks[index].item.distance.toStringAsFixed(1) +
+                    " km")
+                : Text("") //TODO: Bort med hårdkodad text sträng
+          ],
+        )
+      ],
     );
   }
 
@@ -486,9 +494,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   double calculateCoordinateDistance(LatLng destination) {
     var p = 0.017453292519943295;
     var c = cos;
-    var a = 0.5 - c((destination.latitude - currentLocation.latitude) * p)/2
-        + c(currentLocation.latitude * p) * c(destination.latitude * p)
-            * (1 - c((destination.longitude - currentLocation.longitude) * p))/2;
+    var a = 0.5 -
+        c((destination.latitude - currentLocation.latitude) * p) / 2 +
+        c(currentLocation.latitude * p) *
+            c(destination.latitude * p) *
+            (1 - c((destination.longitude - currentLocation.longitude) * p)) /
+            2;
     return 12742 * asin(sqrt(a));
   }
 
@@ -504,7 +515,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Text("Visa Endast favoriter: ", style: TextStyle(fontWeight: FontWeight.bold)),
+          Text("Visa Endast favoriter: ",
+              style: TextStyle(fontWeight: FontWeight.bold)),
           Checkbox(
             value: onlyFavorites,
             onChanged: (value) {
@@ -616,10 +628,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                   Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Text(p.name),
-                      buildParkInfo(p)
-                    ],
+                    children: [Text(p.name), buildParkInfo(p)],
                   ),
                 ],
               ));
@@ -685,6 +694,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   void _initToilets() {
     getToilets().then((toilets) {
       for (Toilet t in toilets) {
+        //todo är detta korrekt?
         String info = "Ditsatt: ${t.operational}\nAnpassad: ${t.adapted}";
         addToiletMarker(t.id.toString(), t.lat, t.long, "wc", info, toiletIcon);
       }
@@ -694,10 +704,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   void addToiletMarker(String id, double lat, double long, String type,
       String info, Uint8List icon) {
     MarkerId markerId = MarkerId(id + type);
-    final Marker marker = Marker(
-        markerId: markerId,
-        position: LatLng(lat, long),
-        icon: myIcon);
+    final Marker marker =
+        Marker(markerId: markerId, position: LatLng(lat, long), icon: myIcon);
 
     setState(() {
       toiletMarkers.add(marker);

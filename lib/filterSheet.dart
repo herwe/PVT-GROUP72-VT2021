@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/MyApp.dart';
 import 'package:flutter_app/qualities.dart';
 
+//more qualities could be added when necessary
 Map<Qualities, bool> map = <Qualities, bool>{
   Qualities.ballplay: false,
   Qualities.parkplay: false,
@@ -25,6 +26,7 @@ class FilterState extends State<Filter> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      //this could be replaced with a wrap and a list of qualities  if we augment the file qualities.dart with icons for each quality
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -37,7 +39,8 @@ class FilterState extends State<Filter> {
                 ),
                 label: Text('Bollspel'),
                 labelStyle: TextStyle(
-                    color: map[Qualities.ballplay] ? Colors.white : Colors.black),
+                    color:
+                        map[Qualities.ballplay] ? Colors.white : Colors.black),
                 selected: map[Qualities.ballplay],
                 onSelected: (bool selected) {
                   setState(() {
@@ -91,7 +94,8 @@ class FilterState extends State<Filter> {
               ),
               label: Text('Lekpark'),
               labelStyle: TextStyle(
-                  color: map[Qualities.playground] ? Colors.white : Colors.black),
+                  color:
+                      map[Qualities.playground] ? Colors.white : Colors.black),
               selected: map[Qualities.playground],
               onSelected: (bool selected) {
                 setState(() {
@@ -126,7 +130,8 @@ class FilterState extends State<Filter> {
               ),
               label: Text('Plaskdamm'),
               labelStyle: TextStyle(
-                  color: map[Qualities.water_play] ? Colors.white : Colors.black),
+                  color:
+                      map[Qualities.water_play] ? Colors.white : Colors.black),
               selected: map[Qualities.water_play],
               onSelected: (bool selected) {
                 setState(() {
@@ -146,7 +151,8 @@ class FilterState extends State<Filter> {
                 ),
                 label: Text('Utomhusbad'),
                 labelStyle: TextStyle(
-                    color: map[Qualities.out_bath] ? Colors.white : Colors.black),
+                    color:
+                        map[Qualities.out_bath] ? Colors.white : Colors.black),
                 selected: map[Qualities.out_bath],
                 onSelected: (bool selected) {
                   setState(() {
