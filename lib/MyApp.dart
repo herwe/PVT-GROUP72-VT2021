@@ -186,9 +186,6 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   List<ClusterItem<Park>> discardedParks =
       []; //Saves all the parks that have been discarded by the filter.
   void _updateMarkers(Set<Marker> markers) {
-    print('Updated ${markers.length} markers');
-    print("Only Favorites?: " + onlyFavorites.toString());
-    print("Amount of Favorites: " + favoriteParks.length.toString());
     setState(() {
       //If no filters are selected, for every quality remove the parks that do not have it.
       parks.removeWhere((value) => removePark(value));
@@ -388,7 +385,11 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
             floatingActionButton: buildFloatingActionButtonsColumn()));
   }
 
-  String dropDownValue = "A - Ö";
+  String alphabetically = "A - Ö";
+  String reverseAlphabetically = "Ö - A";
+  String byDistance = "Nära Mig";
+
+  String currentDropDownValue = "A - Ö";
   buildListViewTop() {
     return Container(
       padding: const EdgeInsets.all(10.0),
@@ -407,21 +408,21 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   DropdownButton<String> buildQualitySortingDropdownButton() {
     return DropdownButton<String>(
-      items: <String>["A - Ö", "Ö - A", "Nära mig"]
+      items: <String>[alphabetically, reverseAlphabetically, byDistance]
           .map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,
           child: Text(value),
         );
       }).toList(),
-      value: dropDownValue,
+      value: currentDropDownValue,
       onChanged: (String newValue) {
         setState(() {
-          dropDownValue = newValue;
+          currentDropDownValue = newValue;
 
-          if (dropDownValue == "A - Ö") {
+          if (currentDropDownValue == alphabetically) {
             sortParksAlphabetically();
-          } else if (dropDownValue == "Ö - A") {
+          } else if (currentDropDownValue == reverseAlphabetically) {
             sortParksReverseAlphabetically();
           } else {
             sortParksByDistance();
@@ -479,7 +480,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                 icon: favoriteParks.contains(parks[index].item)
                     ? Icon(Icons.favorite, color: Colors.red)
                     : Icon(Icons.favorite_border, color: Colors.red)),
-            dropDownValue == "Nära mig"
+            currentDropDownValue == byDistance
                 ? Text("Avstånd: " +
                     parks[index].item.distance.toStringAsFixed(1) +
                     " km")
@@ -534,24 +535,25 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   Drawer buildDrawer() {
     return Drawer(
-        child: ListView(
-      padding: EdgeInsets.zero,
-      children: const <Widget>[
-        DrawerHeader(
-          decoration: BoxDecoration(
-            color: Colors.blue,
-          ),
-          child: Text(
-            'Drawer',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: const <Widget>[
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: Colors.blue
+            ),
+            child: Text(
+              'Drawer',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20
+              ),
             ),
           ),
-        ),
-        ListTile(leading: Icon(Icons.account_circle), title: Text("Logga in"))
-      ],
-    ));
+          ListTile(leading: Icon(Icons.account_circle), title: Text("Logga in"))
+        ],
+      ),
+    );
   }
 
   Column buildFloatingActionButtonsColumn() {
@@ -606,6 +608,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         onCameraMove: clusterManager.onCameraMove,
         onCameraIdle: clusterManager.updateMap,
         cameraTargetBounds: new CameraTargetBounds(new LatLngBounds(
+          //Arbitrary limits forming a square around the Stockholm area.
           northeast: LatLng(59.491684, 18.355865),
           southwest: LatLng(59.220681, 17.837629),
         )));
