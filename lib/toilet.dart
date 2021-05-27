@@ -30,7 +30,7 @@ Future<List<Toilet>> getToilets() async {
     return toilets;
   }
   catch (e) {
-    print("Error loading toilets");
+    print("Error loading toilets: " + e);
     return [];
   }
 }
