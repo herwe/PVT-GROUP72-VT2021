@@ -65,7 +65,7 @@ Future<List<Park>> getParks() async {
     return parks;
   }
   catch (e) {
-    print("Error loading parks");
+    print("Error loading parks: " + e);
     print(e);
     return [];
   }

@@ -643,7 +643,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
     }
     for (ClusterItem ci in parks) {
       if (ci.item.name.toLowerCase().startsWith(query.toLowerCase())) {
-        parkSuggestions.add(parks[ci.item.p.name]);
+        print(ci.item.name);
+        parkSuggestions.add(ci);
       }
     }
   }
