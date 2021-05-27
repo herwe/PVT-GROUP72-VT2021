@@ -8,8 +8,6 @@ class Park extends Location {
   List<Qualities> parkQualities = [];
   double distance;
 
-  //Park({@required id, @required lat, @required long, @required this.name}) : super.constructor(id, lat, long);
-
   Park(int id, double lat, double long, String name) : super(id, lat, long) {
     this.name = name;
   }
@@ -22,78 +20,33 @@ class Park extends Location {
     return park;
   }
 
-  //TODO: map?
   void fillQualities(Map<String, dynamic> json) {
-    if (json['green']) {
-      parkQualities.add(Qualities.green);
-    }
+    //This map should really not be necessary, the formatted version in the enum should be enough however this is how they are referred to as in the database and therefore how they are loaded.
+    var map = {
+      'green': Qualities.green,
+      'playground': Qualities.playground,
+      'natureplay': Qualities.natureplay,
+      'calm': Qualities.calm,
+      'ballplay': Qualities.ballplay,
+      'parkplay' : Qualities.parkplay,
+      'picknick': Qualities.picknick,
+      'grill' : Qualities.grill,
+      'sleigh': Qualities.sleigh,
+      'view': Qualities.view,
+      'forrest': Qualities.forest,
+      'animal': Qualities.animal,
+      'water': Qualities.water,
+      'out_bath': Qualities.out_bath,
+      'nature_expr': Qualities.nature_expr,
+      'out_serve': Qualities.out_serve,
+      'water_play': Qualities.water_play,
+      'bath_f': Qualities.bath_f
+    };
 
-    if (json['playground']) {
-      parkQualities.add(Qualities.playground);
-    }
-
-    if (json['natureplay']) {
-      parkQualities.add(Qualities.natureplay);
-    }
-
-    if (json['calm']) {
-      parkQualities.add(Qualities.calm);
-    }
-
-    if (json['ballplay']) {
-      parkQualities.add(Qualities.ballplay);
-    }
-
-    if (json['parkplay']) {
-      parkQualities.add(Qualities.parkplay);
-    }
-
-    if (json['picknick']) {
-      parkQualities.add(Qualities.picknick);
-    }
-
-    if (json['grill']) {
-      parkQualities.add(Qualities.grill);
-    }
-
-    if (json['sleigh']) {
-      parkQualities.add(Qualities.sleigh);
-    }
-
-    if (json['view']) {
-      parkQualities.add(Qualities.view);
-    }
-
-    if (json['forrest']) {
-      parkQualities.add(Qualities.forest);
-    }
-
-    if (json['animal']) {
-      parkQualities.add(Qualities.animal);
-    }
-
-    if (json['water']) {
-      parkQualities.add(Qualities.water);
-    }
-
-    if (json['out_bath']) {
-      parkQualities.add(Qualities.out_bath);
-    }
-
-    if (json['nature_expr']) {
-      parkQualities.add(Qualities.nature_expr);
-    }
-
-    if (json['out_serve']) {
-      parkQualities.add(Qualities.out_serve);
-    }
-
-    if (json['water_play']) {
-      parkQualities.add(Qualities.water_play);
-    }
-
-    if (json['bath_f']) {
-      parkQualities.add(Qualities.bath_f);
+    for (String s in json.keys) {
+      if (map.containsKey(s) && json[s]) {
+        parkQualities.add(map[s]);
+      }
     }
   }
 }
@@ -102,7 +55,6 @@ Future<List<Park>> getParks() async {
   try {
     var url = Uri.parse('http://78.72.246.146:8280/group2/parks/all');
     http.Response response = await http.get(url);
-    //final data = jsonDecode(response.body);
     final data = json.decode(utf8.decode(response.bodyBytes));
 
     List<Park> parks = [];
@@ -114,6 +66,7 @@ Future<List<Park>> getParks() async {
   }
   catch (e) {
     print("Error loading parks");
+    print(e);
     return [];
   }
 }
