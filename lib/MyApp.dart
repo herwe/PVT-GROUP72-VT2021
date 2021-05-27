@@ -57,6 +57,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   BitmapDescriptor myIcon;
 
+  Uint8List toiletIcon;
+
   var smallIconSize = 50;
 
   _initParks() {
@@ -108,9 +110,9 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   ClusterManager _initClusterManager() {
     return ClusterManager<Park>(parks, _updateMarkers,
         initialZoom: dsv.zoom,
-        stopClusteringZoom: 14.0,
+        stopClusteringZoom: 14.0, //Change stopClusteringZoom at your own risk, too many markers will make to app unuseable.
         markerBuilder:
-            markerBuilder); //Change stopClusteringZoom at your own risk
+            markerBuilder);
   }
 
   buildParkInfo(Park p) {
@@ -715,6 +717,4 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       toiletMarkers.add(marker);
     });
   }
-
-  Uint8List toiletIcon;
 }
