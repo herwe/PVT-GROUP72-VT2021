@@ -28,12 +28,8 @@ public class Rating {
         return value;
     }
 
+    //placeholder
     public void updateValue(Integer value) {
-        if (this.value == 0) {
-            this.value = value;
-        }
-        else {
-            this.value = ((this.value + value) / 2);
-        }
+        this.value = value;
     }
 }

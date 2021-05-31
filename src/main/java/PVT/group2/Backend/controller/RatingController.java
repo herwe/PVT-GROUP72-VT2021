@@ -12,8 +12,10 @@ import java.util.Optional;
 @RequestMapping("rating")
 public class RatingController {
     @Autowired
-
     private RatingRepository ratingRepository;
+
+    private final int LOWEST_RATING_VALUE = 1;
+    private final int HIGHEST_RATING_VALUE = 5;
 
     @GetMapping("/all")
     public @ResponseBody Iterable<Rating> all() {
@@ -37,14 +39,17 @@ public class RatingController {
         return "Rating saved";
     }
 
+    //Queries the data base wether the specified park exists or not.
     private boolean parkExists(Integer parkID) {
         return ratingRepository.existsById(parkID);
     }
 
+    //Lowest value accepted is 1 and highest 5;
     private boolean isValidValue(Integer value) {
-        return value >= 1 && value <= 5;
+        return value >= LOWEST_RATING_VALUE && value <= HIGHEST_RATING_VALUE;
     }
 
+    //Updates value in database.
     private void updateRatingValue(Integer parkID, Integer value) {
         Rating r = ratingRepository.findById(parkID).get();
         r.updateValue(value);
