@@ -19,39 +19,4 @@ void main() {
 
     expect(true, true);
   });
-
-  testWidgets('Test if JSON for map styling is properly loaded', (WidgetTester tester) async {
-    await tester.pumpWidget(AppWrapper());
-    Future<String> mapStyling = read();
-    String s = "";
-    mapStyling.then((value) {
-      s = value;
-    });
-
-    final expectedString = find.text(s);
-
-    expect(expectedString, findsOneWidget);
-
-  });
-
-  testWidgets('Since to HTTP connection is established, show error while loading park', (WidgetTester tester) async {
-    await tester.pumpWidget(AppWrapper());
-
-    final titleFinder = find.text('Error loading parks');
-
-    expect(titleFinder, findsOneWidget);
-  });
-
-
-}
-
-Future<String> read() async {
-  String text;
-  try {
-    final File file = File('map_style');
-    text = await file.readAsString();
-  } catch (e) {
-    print("Couldn't read file");
-  }
-  return text;
 }
